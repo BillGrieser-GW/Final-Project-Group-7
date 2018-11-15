@@ -7,19 +7,20 @@ Created on Fri Nov  9 12:33:28 2018
 
 import os.path
 from PIL import Image
+
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import torch.nn as nn
 from torch.autograd import Variable
 import datetime
 import pickle
 
-import scipy.io
-import h5py
+
+import svhnreader
 
 FORCE_CPU = False
 
@@ -35,41 +36,35 @@ DATA_DIR = r"D:\Users\billg_000\GradSchool\OneDrive - gwmail.gwu.edu\DATS 6203 M
 METADATA_FILE = "digitStruct.mat"
 
 data_file = os.path.join(DATA_DIR, METADATA_FILE)
+
+def imshow(im_frame, metadata=[]):
+    f, ax = plt.subplots(figsize=(6,6))
+    ax.imshow(im_frame)
+    
+    for md in metadata:
+        rect = patches.Rectangle((md.left,md.top),md.width,md.height,linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
+        
+    plt.show()
+    
+# Create a reader object
+sr = svhnreader.SvhnReader(data_file)
+
+# Prepare the
 #%%
-snf = h5py.File(data_file, 'r')
+#mi = sr.get_digits_for_image(12002)
+#mi = sr.get_digits_for_image(0)
+mi = sr.get_digits_for_image(12)
 
-#%%
-bboxes = snf.get('digitStruct/bbox')
+image_file = os.path.join(DATA_DIR, mi[0].file_name)
 
-#
-# Based on a stack overflow answer:
-# https://stackoverflow.com/questions/41176258/h5py-access-data-in-datasets-in-svhn
-#
-def get_name(index, snf, names):
-    names = snf.get('digitStruct/name')
-    return ''.join([chr(v[0]) for v in snf[names[index][0]].value])
+im_frame = Image.open(image_file)
+imshow(im_frame, mi) 
+print ("Labels:", [x.label for x in mi])
 
-def get_box_data(index, snf):
-    """
-    get bounding boxes for a given index
-    """
-    box_data = dict()
-    box_data['height'] = []
-    box_data['label'] = []
-    box_data['left'] = []
-    box_data['top'] = []
-    box_data['width'] = []
+for d in mi:
+    imshow(im_frame.crop(d.crop_box())) 
 
-    def collect_attrs(name, obj):
-        vals = []
-        if obj.shape[0] == 1:
-            vals.append(obj[0][0])
-        else:
-            for k in range(obj.shape[0]):
-                vals.append(int(snf[obj[k][0]][0][0]))
-        box_data[name] = vals
 
-    box = snf['/digitStruct/bbox'][index]
-    snf[box[0]].visititems(collect_attrs)
-    return box_data
+
 
