@@ -9,12 +9,7 @@ import os.path
 from PIL import Image
 import svhnreader
 from svhnpickletypes import SvhnParentPickle, SvhnDigitPickle
-
-try:
-   import cPickle as pickle
-except:
-   print("Falling back to regular pickle -- no cPickle available")
-   import pickle
+import pickle
 
 # Assume the data is kept in a folder that is a sibling to the folder where the code is kept
 DATA_PARENT = os.path.realpath(os.path.join("..", "data"))

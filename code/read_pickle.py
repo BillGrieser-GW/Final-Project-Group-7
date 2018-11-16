@@ -12,12 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from svhnpickletypes import SvhnDigit
-
-try:
-   import cPickle as pickle
-except:
-   print("Falling back to pickle -- no cPickle available")
-   import pickle
+import pickle
    
 # =============================================================================
 # Parent files == parent image and metadate for each digit in image
