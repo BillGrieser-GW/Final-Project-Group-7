@@ -18,8 +18,7 @@ import matplotlib.patches as patches
 import torch.nn as nn
 from torch.autograd import Variable
 import datetime
-import pickle
-
+from svhnpickletypes import SvhnDigit
 
 import svhnreader
 
@@ -67,7 +66,7 @@ for t in tests:
     print ("Labels:", [x.label for x in mi])
     
     for d in mi:
-        imshow(im_frame.crop(d.crop_box())) 
+        imshow(im_frame.crop(d.get_crop_box())) 
 #%%
 pickle_me = []
 for t in range(sr.length):

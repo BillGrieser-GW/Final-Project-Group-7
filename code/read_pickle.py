@@ -5,15 +5,26 @@ Created on Thu Nov 15 14:36:33 2018
 @author: billg_000
 """
 
-import pickle
+
+
 import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import svhnreader
 
+from svhnpickletypes import SvhnDigit
+
+try:
+   import cPickle as pickle
+except:
+   print("Falling back to pickle -- no cPickle available")
+   import pickle
+   
+# =============================================================================
+# Parent files == parent image and metadate for each digit in image
+# =============================================================================
 # Read a pickle file
 print("Reading pickle")
-with open(os.path.join("..", "data", "train_data.pkl"), 'rb') as f:
+with open(os.path.join("..", "data", "train_parent_data.pkl"), 'rb') as f:
     train_data = pickle.load(f)
 
 print("Done Reading pickle")
@@ -29,20 +40,36 @@ def imshow(ax, im_frame, metadata=[], title=''):
     if title != '':
         ax.set_title(title)
         
-    
 #%% 
-tests = [40, 12002, 0, 12, 18, 22660, 19, 29]
-#tests = [40, 12002]
+#tests = [40, 12002, 0, 12, 18, 22660, 19, 29]
+tests = [49, 44, 0, 1, 2, 3, 18, 19, 40]
 
 for t in tests:
     
-    mi = train_data[t][1]
-    f, ax = plt.subplots(1, len(mi)+1, figsize=(10,4))
+    mi = train_data[t]
     
-    parent =  train_data[t][0]
-    imshow(ax[0], parent, mi, title=train_data[t][1][0].file_name) 
+    f, ax = plt.subplots(1, len(mi.digit_data) + 1, figsize=(10,4))
     
-    for d in mi:
-        imshow(ax[d.seq_in_file], parent.crop(d.crop_box()), title="Label = {0}".format(d.label)) 
+    parent =  train_data[t].parent_image
+    imshow(ax[0], parent, mi.digit_data, title=mi.file_name) 
+    
+    for d in mi.digit_data:
+        imshow(ax[d.seq_in_file], parent.crop(d.get_crop_box()), title="Label = {0}".format(d.label)) 
         
+    plt.show()
+#%%    
+# =============================================================================
+# Parent files == parent image and metadate for each digit in image
+# =============================================================================
+# Read a pickle file
+with open(os.path.join("..", "data", "train_digit_data.pkl"), 'rb') as f:
+    train_data = pickle.load(f)
+    
+for t in tests:
+    
+    dd = train_data[t]
+    
+    f, ax = plt.subplots(figsize=(10,4))
+    imshow(ax, dd.digit_image, title="Label = {0}".format(dd.data.label)) 
+    
     plt.show()

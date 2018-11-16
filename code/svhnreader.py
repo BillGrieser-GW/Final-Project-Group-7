@@ -1,42 +1,10 @@
 """
 Class to read Street View House Numbers dataset
+
+bgrieser
 """
 import h5py
- 
-CROP_ADJUST = 0
-
-class SvhnDigit():
-    def __init__(self,  file_name, seq_in_file, label, left, top, width, height):
-        self.file_name = file_name
-        self.seq_in_file = seq_in_file
-        self.label = label
-        self.left = left
-        self.top = top
-        self.width = width
-        self.height = height
-        self.numpy_data = None
-        
-    def crop_box(self):
-        """
-        Get the box used by Image.crop to crop this digit out of the parent.
-        """
-        return (self.left + CROP_ADJUST, 
-                self.top + CROP_ADJUST, 
-                self.left + self.width + CROP_ADJUST, 
-                self.top + self.height + CROP_ADJUST)
-    
-    def get_padding(self, to_width, to_height):
-        """
-        Returns a tuple with the padding required by ImageOps.expand to center
-        the digit image in an input block with the given shape
-        """
-        delta_w = to_width - self.width
-        delta_h = to_height - self.height
-        return(delta_w//2, delta_h//2, delta_w - (delta_w//2), delta_h - (delta_h//2))
-        
-    def image_size(self):
-        return (self.width, self.height)
-    
+from svhnpickletypes import SvhnDigit 
         
 #
 # Based on a stack overflow answer:
@@ -71,7 +39,7 @@ class SvhnReader():
         def collect_attrs(name, obj):
             vals = []
             if obj.shape[0] == 1:
-                vals.append(obj[0][0])
+                vals.append(int(obj[0][0]))
             else:
                 for k in range(obj.shape[0]):
                     vals.append(int(self.h5file[obj[k][0]][0][0]))
