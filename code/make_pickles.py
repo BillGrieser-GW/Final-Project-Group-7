@@ -35,7 +35,7 @@ for version in VERSIONS_TO_MAKE:
     pickle_me_parents = []
     pickle_me_digits = []
     
-    for t in range(1000):
+    for t in range(sr.length):
         digit_data = sr.get_digits_for_image(t)
         
         image_file = os.path.join(data_dir, digit_data[0].file_name)

@@ -41,8 +41,8 @@ def imshow(ax, im_frame, metadata=[], title=''):
         ax.set_title(title)
         
 #%% 
-#tests = [40, 12002, 0, 12, 18, 22660, 19, 29]
-tests = [49, 44, 0, 1, 2, 3, 18, 19, 40]
+tests = [40, 12002, 0, 12, 18, 22660, 19, 29]
+#tests = [49, 44, 0, 1, 2, 3, 18, 19, 40]
 
 for t in tests:
     
