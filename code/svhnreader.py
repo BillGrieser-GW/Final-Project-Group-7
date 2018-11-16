@@ -14,6 +14,7 @@ class SvhnDigit():
         self.top = top
         self.width = width
         self.height = height
+        self.numpy_data = None
         
     def crop_box(self):
         """
@@ -24,8 +25,18 @@ class SvhnDigit():
                 self.left + self.width + CROP_ADJUST, 
                 self.top + self.height + CROP_ADJUST)
     
+    def get_padding(self, to_width, to_height):
+        """
+        Returns a tuple with the padding required by ImageOps.expand to center
+        the digit image in an input block with the given shape
+        """
+        delta_w = to_width - self.width
+        delta_h = to_height - self.height
+        return(delta_w//2, delta_h//2, delta_w - (delta_w//2), delta_h - (delta_h//2))
+        
     def image_size(self):
         return (self.width, self.height)
+    
         
 #
 # Based on a stack overflow answer:

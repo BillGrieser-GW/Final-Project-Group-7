@@ -7,6 +7,7 @@ Created on Fri Nov  9 12:33:28 2018
 
 import os.path
 from PIL import Image
+from PIL import ImageOps
 
 import numpy as np
 import torch
@@ -52,19 +53,37 @@ sr = svhnreader.SvhnReader(data_file)
 
 # Prepare the
 #%%
-#mi = sr.get_digits_for_image(12002)
-#mi = sr.get_digits_for_image(0)
-mi = sr.get_digits_for_image(12)
 
-image_file = os.path.join(DATA_DIR, mi[0].file_name)
-
-im_frame = Image.open(image_file)
-imshow(im_frame, mi) 
-print ("Labels:", [x.label for x in mi])
-
-for d in mi:
-    imshow(im_frame.crop(d.crop_box())) 
+tests = [12002, 0, 12, 18, 22660, 18, 29]
 
 
+for t in tests:
+    mi = sr.get_digits_for_image(t)
+    
+    image_file = os.path.join(DATA_DIR, mi[0].file_name)
+    
+    im_frame = Image.open(image_file)
+    imshow(im_frame, mi) 
+    print ("Labels:", [x.label for x in mi])
+    
+    for d in mi:
+        imshow(im_frame.crop(d.crop_box())) 
+#%%
+pickle_me = []
+for t in range(sr.length):
+    digit_data = sr.get_digits_for_image(t)
+    
+    image_file = os.path.join(DATA_DIR, digit_data[0].file_name)
+    
+    parent = Image.open(image_file)
+    parent.load()
+    pickle_me.append((mi[0].file_name, parent, digit_data))
+    
+    if ((t+1) % 200) == 0:
+        print("Done with {0} entries".format(t+1))
+    
+print("Writing pickle")
+with open(os.path.join("..", "data", "train_data.pkl"), 'wb') as f:
+    pickle.dump(pickle_me, f)
 
-
+print("Done writing pickle")
