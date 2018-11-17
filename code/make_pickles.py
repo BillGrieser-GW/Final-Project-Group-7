@@ -13,6 +13,7 @@ import pickle
 
 try:
     from tqdm import tqdm
+    tqdm.monitor_interval = 0 # tqdm bug workaround. https://github.com/tqdm/tqdm/issues/481
 except:
     tqdm = lambda x: x
 
@@ -21,8 +22,6 @@ DATA_PARENT = os.path.realpath(os.path.join("..", "data"))
 METADATA_FILE = "digitStruct.mat"
 
 VERSIONS_TO_MAKE = ("train", "test")
-
-tqdm.monitor_interval = 0 # tqdm bug workaround. https://github.com/tqdm/tqdm/issues/481
 
 for version in VERSIONS_TO_MAKE:
     data_dir = os.path.join(DATA_PARENT, version)
