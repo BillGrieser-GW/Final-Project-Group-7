@@ -34,8 +34,7 @@ def imshow(ax, im_frame, metadata=[], title=''):
         
     if title != '':
         ax.set_title(title)
-        
-#%% 
+         
 tests = [40, 12002, 0, 12, 18, 22660, 19, 29]
 #tests = [49, 44, 0, 1, 2, 3, 18, 19, 40]
 
@@ -52,9 +51,9 @@ for t in tests:
         imshow(ax[d.seq_in_file], parent.crop(d.get_crop_box()), title="Label = {0}".format(d.label)) 
         
     plt.show()
-#%%    
+ 
 # =============================================================================
-# Parent files == parent image and metadate for each digit in image
+# Digit files -- one entry per digit, with the image already cropped
 # =============================================================================
 # Read a pickle file
 with open(os.path.join("..", "data", "train_digit_data.pkl"), 'rb') as f:
