@@ -97,8 +97,6 @@ def show_evaluation_metrics(net, run_device, test_loader):
     all_labels = []
     all_predicted = []
     
-    net.eval()
-    
     for i, data in enumerate(test_loader):
         print("Reading batch {0}".format(i))
         
@@ -188,6 +186,8 @@ def show_pred_loop():
 #%%
     normalizer = nn.Softmax(dim=1)
     classes = [str(x) for x in range(10)]
+    criterion = nn.CrossEntropyLoss() 
+    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
     
     while True:
         image_idx = input("Enter an index from 0 to {0} from the test data (q to quit): ".format(len(test_set)))
@@ -207,35 +207,74 @@ def show_pred_loop():
             # Get the image & label
             image, label = test_set[image_idx]    
             
-            image = Variable(image).to(device=run_device).view(1,1,46,46)
-            outputs = net(image)
+            imagev = Variable(image).to(device=run_device).view(1,1,46,46)
+            imagev.requires_grad_(True)
+            
+            outputs = net(imagev)
             _, predicted = torch.max(outputs.data, 1)
             predicted = predicted.cpu()
             
-            f, ax = plt.subplots(1, 2, figsize=(9.5,3.5))
+            # Get grads of input
+            outputs.backward(torch.Tensor([1,1,1,10,1,1,1,1,1,1,]).view(1,-1), retain_graph=True)
+            
+            #loss = criterion(outputs, predicted)
+            #loss.backward()
+           
+            print("Grads", imagev.grad)
+            
+#            tally= torch.zeros(net.image_size[0],net.image_size[1], device=run_device)
+#            tally.requires_grad_(False)
+#           
+#            # Determine the contribution of each pixel
+#            for row in range(net.image_size[0]):
+#                print ("Tally row: {0}".format(row))
+#                for col in range(net.image_size[1]):
+#                    trial_in= torch.ones(net.image_size[0],net.image_size[1], device=run_device)
+#                    trial_in.requires_grad_(False)
+#                    trial_in = trial_in * 0.5
+#                    trial_in[row, col] = imagev[0, 0, row, col]
+#                    
+#                    # Run the network
+#                    trial_out = net(trial_in.view(1,1,net.image_size[0],net.image_size[1]))
+#                    tally[row, col] = trial_out[0, predicted]
+     
+            f, ax = plt.subplots(1, 4, figsize=(9.5,3.5))
             f.suptitle("Actual: {0} Predicted: {1}".
                    format(classes[label], classes[int(predicted[0])]))
             
-            imshowax(ax[0], image.view(net.image_size[0], net.image_size[1]))
+            ax[0].imshow(test_data[image_idx].digit_image)
+            ax[0].set_xlabel("Original Image for digit")
             
-            ax[0].set_xlabel("Image {0}".format(image_idx))
+            imshowax(ax[1], imagev.detach().view(net.image_size[0], net.image_size[1]))
+            
+            ax[1].set_xlabel("Image {0}".format(image_idx))
             y_pos = np.arange(len(classes))
-            ax[1].set_yticks(y_pos)
-            ax[1].set_yticklabels(classes, fontsize=8)
-            ax[1].set_xlabel("Confidence of class prediction")
+            ax[2].set_yticks(y_pos)
+            ax[2].set_yticklabels(classes, fontsize=8)
+            ax[2].set_xlabel("Confidence of class prediction")
             softmaxed = normalizer(outputs)[0]
             
-            ax[1].barh(y_pos, softmaxed, align='center',
+            ax[2].barh(y_pos, softmaxed, align='center',
                     color='blue')
-            ax[1].invert_yaxis()
+            ax[2].invert_yaxis()
+            
+            #imshowax(ax[3], tally.detach())
+            #ax[3].set_xlabel("Contribution of each pixel")
+            x = imagev.grad.view(net.image_size[0], net.image_size[1])
+            imshowax(ax[3], x.detach())
+            ax[3].set_xlabel("Something of each pixel")
+            
             plt.show()
 
-show_pred_loop()
+
 #%%  
+show_pred_loop()
 # =============================================================================
 # MAIN -- show the matrix for the loaded model
 # =============================================================================
 if __name__ == "__main__":
     
+    pass
+
     # Confusion Matrix
-    c_matrix = show_evaluation_metrics(net, run_device, test_loader)
+    # c_matrix = show_evaluation_metrics(net, run_device, test_loader)
