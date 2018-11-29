@@ -8,6 +8,8 @@ import os
 import torch
 import torchvision.transforms as transforms
 import numpy as np
+import numpy.ma as ma
+
 import torch.nn as nn
 from torch.autograd import Variable
 from bill_nets import ConvNet
@@ -174,7 +176,11 @@ def show_evaluation_metrics(net, run_device, test_loader):
 #%%
 def imshowax(ax, img):
     #img = img / 2 + 0.5
-    npimg = img.numpy()
+    if type(img) == torch.Tensor:
+        npimg = img.numpy()
+    else:
+        npimg = img
+        
     #ax.imshow(np.transpose(npimg, (1, 2, 0)))
     ax.imshow(npimg, cmap='Greys_r')
     ax.tick_params(axis='both', which = 'both', bottom=False, left=False, tick1On=False, tick2On=False,
@@ -211,16 +217,44 @@ def show_pred_loop():
             imagev.requires_grad_(True)
             
             outputs = net(imagev)
+            softmaxed = normalizer(outputs)[0]
+            
             _, predicted = torch.max(outputs.data, 1)
             predicted = predicted.cpu()
+            pclass = int(predicted)
             
-            # Get grads of input
-            outputs.backward(torch.Tensor([1,1,1,10,1,1,1,1,1,1,]).view(1,-1), retain_graph=True)
+            # Get grads of input for predicted output
+            last_grad = [0] * len(classes)
+            #last_grad[pclass] = 1
+            other_grads = []
+            pred_grads = []
+            wavg = np.zeros((net.image_size[0],net.image_size[1]))
+            weightsum = 0
+            
+            for idx in range(len(classes)):
+                last_grad = [0] * len(classes)
+                last_grad[idx] = 1
+                outputs = net(imagev)
+                outputs.backward(torch.Tensor(last_grad).view(1,-1), retain_graph=True)
+                thesegrads = imagev.grad[0,0].numpy().copy()
+                
+                if idx == pclass:
+                    pred_grads = thesegrads
+                else:
+                    other_grads.append(thesegrads)
+                    wavg += (1-float(softmaxed[idx])) * thesegrads
+                    weightsum += 1-float(softmaxed[idx])
+                    
+                #all_grads.append((thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min()) )
+                
+                imagev.grad.data.zero_()
+            
+            wavg = wavg / (weightsum if weightsum != 0 else 1)
             
             #loss = criterion(outputs, predicted)
             #loss.backward()
            
-            print("Grads", imagev.grad)
+            #print("Grads", imagev.grad)
             
 #            tally= torch.zeros(net.image_size[0],net.image_size[1], device=run_device)
 #            tally.requires_grad_(False)
@@ -238,9 +272,9 @@ def show_pred_loop():
 #                    trial_out = net(trial_in.view(1,1,net.image_size[0],net.image_size[1]))
 #                    tally[row, col] = trial_out[0, predicted]
      
-            f, ax = plt.subplots(1, 4, figsize=(9.5,3.5))
+            f, ax = plt.subplots(1, 5, figsize=(9.5,3.5))
             f.suptitle("Actual: {0} Predicted: {1}".
-                   format(classes[label], classes[int(predicted[0])]))
+                   format(classes[label], classes[pclass]))
             
             ax[0].imshow(test_data[image_idx].digit_image)
             ax[0].set_xlabel("Original Image for digit")
@@ -252,7 +286,7 @@ def show_pred_loop():
             ax[2].set_yticks(y_pos)
             ax[2].set_yticklabels(classes, fontsize=8)
             ax[2].set_xlabel("Confidence of class prediction")
-            softmaxed = normalizer(outputs)[0]
+            
             
             ax[2].barh(y_pos, softmaxed, align='center',
                     color='blue')
@@ -260,9 +294,23 @@ def show_pred_loop():
             
             #imshowax(ax[3], tally.detach())
             #ax[3].set_xlabel("Contribution of each pixel")
-            x = imagev.grad.view(net.image_size[0], net.image_size[1])
-            imshowax(ax[3], x.detach())
-            ax[3].set_xlabel("Something of each pixel")
+            #x = imagev.grad[0,0]
+            #predg = all_grads[pclass]
+            
+            # Remove pred
+            #del all_grads[pclass]
+            
+            #x = torch.Tensor(predg - np.asarray(all_grads).mean(axis=0))
+            x1 = torch.Tensor(pred_grads - np.asarray(other_grads).mean(axis=0))
+            #x2 = torch.Tensor(pred_grads - wavg)
+            x2 = x1 > 1
+            x3 = (x2).float() * imagev.view(net.image_size[0], net.image_size[1])
+            
+            imshowax(ax[3], x2.detach())
+            ax[3].set_xlabel("x2")
+            
+            imshowax(ax[4], x3.detach())
+            ax[4].set_xlabel("x3")
             
             plt.show()
 
