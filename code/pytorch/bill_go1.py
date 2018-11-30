@@ -8,8 +8,11 @@
 # --------------------------------------------------------------------------------------------
 import os
 import sys
-import torch
 
+# Allow imports from parent dir
+sys.path.insert(0,"..")
+
+import torch
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,21 +25,23 @@ from svhnpickletypes import SvhnDigit
 from svhndatasets import SvhnDigitsDataset
 import pickle
 
-from bill_nets import ConvNet
+# --------------------------------------------------------------------------------------------
+# Choose the right values for x.
 
 #
 # Initially try a network with a single hidden layer of 500 neurons
 # and a moderate number of neurons and learning rate
 # 
 
-IMAGE_SIZE = (46,46)
+IMAGE_SIZE = (52,78)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 hidden_size = 500
 num_classes = 10
-num_epochs = 100
-batch_size = 128
+num_epochs = 10
+batch_size = 128 
 learning_rate = .001
+
 
 FORCE_CPU = False
 
@@ -57,6 +62,7 @@ transform = transforms.Compose([transforms.Grayscale(),
                                 transforms.Resize(IMAGE_SIZE),
                                 transforms.ToTensor(), 
                                 transforms.Normalize((0.5,) * CHANNELS, (0.5,) * CHANNELS)])
+# --------------------------------------------------------------------------------------------
 
 DATA_DIR = os.path.join("..", "data")
 
@@ -78,17 +84,79 @@ test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuff
 # =============================================================================
 # Set up the network
 # =============================================================================
+#
+# Define a model class. This uses purelin() as the second-layer
+# transfer function
+class FlatNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(FlatNet, self).__init__()
+        self.input_size = input_size
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        out = x.view(-1, self.input_size)  # Flatten
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
+    
+class ConvNet(nn.Module):
+    def __init__(self, hidden_size, num_classes):
+        super(ConvNet, self).__init__()
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=5, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=5, padding=2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=5, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
+        self.fc = nn.Linear(1728, 10)
+
+    def forward(self, x):
+        in_size = x.size(0)
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = out.view(in_size, -1)
+        out = self.fc(out)
+        return out
+    
+def get_total_parms(module):
+    
+    total_parms = 0
+    # Find the total number of parameters being trained
+    for t in module.state_dict().values():
+        total_parms += int(np.prod(t.shape))
+    return total_parms
+        
 # Fixed manual seed
 torch.manual_seed(267)
 
 # Choose the right argument for x
         
 # Instantiate a model
-net = ConvNet(num_classes, CHANNELS, IMAGE_SIZE ).to(device=run_device)
-
+net = ConvNet(hidden_size, num_classes).to(device=run_device)
 #net = FlatNet(INPUT_SIZE, hidden_size, num_classes).to(device=run_device)
 print(net)
-total_net_parms = net.get_total_parms()
+total_net_parms = get_total_parms(net)
+print ("Total trainable parameters:", total_net_parms)
+
+# Load weights
+from_file=os.path.join("results", "bill_net1_1118_182911.pkl")
+net.load_state_dict(torch.load(from_file, map_location=run_device))
+print("Loading model from: ", from_file)
+
+total_net_parms = get_total_parms(net)
 print ("Total trainable parameters:", total_net_parms)
 
 criterion = nn.CrossEntropyLoss() 
@@ -116,7 +184,7 @@ for epoch in range(num_epochs):
         optimizer.step()
         
         if ((i + 1) % 100 == 0) or ((i+1) == (len(train_set) // batch_size)):
-            print("Epoch [{0:2d}/{1:2d}], Step [{2:3d}/{3:3d}], Loss: {4:4f}, Elapsed time: {5:4d} seconds" \
+            print("Epoch [{0:d}/{1:d}], Step [{2:d}/{3:d}], Loss: {4:4f}, Elapsed time: {5:4d} seconds" \
                   .format(epoch + 1, num_epochs, i + 1, len(train_set) // batch_size, \
                           loss.data.item(), int(time.time() - start_time)))
             
@@ -182,7 +250,6 @@ torch.save(net.state_dict(), run_base + suffix + '.pkl')
 with open(run_base + suffix + '_results.txt', 'w') as rfile:
     rfile.write(str(net))
     rfile.write('\n\n')
-    rfile.write('Image size: {0}\n'.format(IMAGE_SIZE))
     rfile.write("Total network weights + biases: {0}\n".format(total_net_parms))
     rfile.write("Epochs: {0}\n".format(num_epochs))
     rfile.write("Learning rate: {0}\n".format(learning_rate))

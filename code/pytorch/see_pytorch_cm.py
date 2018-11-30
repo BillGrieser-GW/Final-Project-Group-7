@@ -4,6 +4,11 @@
 # Load a model and show its confusion matrix versus the test data
 #
 # =============================================================================
+import sys
+
+# Allow imports from parent dir
+sys.path.insert(0,"..")
+
 import os
 import torch
 import torchvision.transforms as transforms
@@ -16,6 +21,7 @@ from bill_nets import ConvNet
 
 from svhnpickletypes import SvhnDigit
 from svhndatasets import SvhnDigitsDataset
+
 import pickle
 
 # For heatmap
@@ -56,7 +62,7 @@ transform = transforms.Compose([transforms.Grayscale(),
                                 transforms.ToTensor(), 
                                 transforms.Normalize((0.5,) * CHANNELS, (0.5,) * CHANNELS)])
 
-DATA_DIR = os.path.join("..", "data")
+DATA_DIR = os.path.join("..", "..", "data")
 
 # Open the train pickle"
 print("Reading pickles")
@@ -237,6 +243,8 @@ def show_pred_loop():
                 outputs = net(imagev)
                 outputs.backward(torch.Tensor(last_grad).view(1,-1), retain_graph=True)
                 thesegrads = imagev.grad[0,0].numpy().copy()
+                # normalize
+                thesegrads = (thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min())
                 
                 if idx == pclass:
                     pred_grads = thesegrads
@@ -272,7 +280,7 @@ def show_pred_loop():
 #                    trial_out = net(trial_in.view(1,1,net.image_size[0],net.image_size[1]))
 #                    tally[row, col] = trial_out[0, predicted]
      
-            f, ax = plt.subplots(1, 5, figsize=(9.5,3.5))
+            f, ax = plt.subplots(1, 6, figsize=(10,3.5))
             f.suptitle("Actual: {0} Predicted: {1}".
                    format(classes[label], classes[pclass]))
             
@@ -301,20 +309,26 @@ def show_pred_loop():
             #del all_grads[pclass]
             
             #x = torch.Tensor(predg - np.asarray(all_grads).mean(axis=0))
-            x1 = torch.Tensor(pred_grads - np.asarray(other_grads).mean(axis=0))
+            x1 = torch.Tensor(pred_grads) #- np.asarray(other_grads).mean(axis=0))
             #x2 = torch.Tensor(pred_grads - wavg)
-            x2 = x1 > 1
+            x2 = x1 < 0.35
             x3 = (x2).float() * imagev.view(net.image_size[0], net.image_size[1])
             
-            imshowax(ax[3], x2.detach())
-            ax[3].set_xlabel("x2")
+            imshowax(ax[3], x1.detach())
+            ax[3].set_xlabel("x1")
             
-            imshowax(ax[4], x3.detach())
-            ax[4].set_xlabel("x3")
+            imshowax(ax[4], x2.detach())
+            ax[4].set_xlabel("x2")
+            
+            imshowax(ax[5], x3.detach())
+            ax[5].set_xlabel("x3")
             
             plt.show()
 
 
+            # make a collection of points selected by the gradients
+            
+            
 #%%  
 show_pred_loop()
 # =============================================================================
