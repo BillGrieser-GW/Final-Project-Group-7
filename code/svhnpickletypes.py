@@ -75,5 +75,3 @@ class SvhnDigit():
         delta_h = to_height - self.height
         return(delta_w//2, delta_h//2, delta_w - (delta_w//2), delta_h - (delta_h//2))
         
-    def image_size(self):
-        return (self.width, self.height)

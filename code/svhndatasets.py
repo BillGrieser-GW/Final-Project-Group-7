@@ -25,6 +25,25 @@ class SvhnDigitsDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         return self.transform(self.digits_data[index].digit_image), \
            self.digits_data[index].data.label
+           
+           
+class SvhnParentsDataset(torch.utils.data.Dataset):
+    
+    def __init__(self, parents_data, transform=lambda x:x):
+        """
+        digits_data: a SvhnDigitPickle 
+        """
+        super(torch.utils.data.Dataset, self).__init__()
+        
+        self.parents_data = parents_data
+        self.transform = transform
+       
+    def __len__(self):
+        return len(self.parents_data)
+        
+    def __getitem__(self, index):
+        return self.transform(self.parents_data[index].digit_image), \
+           self.digits_data[index].data.label
     
     
     

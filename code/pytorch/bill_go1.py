@@ -33,7 +33,7 @@ import pickle
 # and a moderate number of neurons and learning rate
 # 
 
-IMAGE_SIZE = (52,78)
+IMAGE_SIZE = (46,46)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 hidden_size = 500

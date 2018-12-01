@@ -62,7 +62,7 @@ transform = transforms.Compose([transforms.Grayscale(),
                                 transforms.ToTensor(), 
                                 transforms.Normalize((0.5,) * CHANNELS, (0.5,) * CHANNELS)])
 
-DATA_DIR = os.path.join("..", "data")
+DATA_DIR = os.path.join("..", "..", "data")
 
 # Open the train pickle"
 print("Reading pickles")
