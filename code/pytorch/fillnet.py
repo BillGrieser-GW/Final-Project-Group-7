@@ -39,7 +39,7 @@ class FillNet(nn.Module):
         self.traning_x_acc.append(X)
         self.traing_target_acc.append(target)
         
-    def train(self):
+    def start_training(self):
         """
         Use accumulated training samples with their targets to train
         the model.
@@ -47,6 +47,7 @@ class FillNet(nn.Module):
         # Convert training data to torch tensors
         self.pattern_layer = torch.tensor(np.vstack(self.traning_x_acc))
         self.W2 = torch.randn(len(self.traning_x_acc), requires_grad=True)
+        #self.W2 = torch.zeros(len(self.traning_x_acc), requires_grad=True)
         self.targets = torch.tensor(self.traing_target_acc)
         
     def rbf(self, W2, Dsquared):
@@ -64,6 +65,12 @@ class FillNet(nn.Module):
             out[idx] = self.rbf(self.W2, self.Dsquared).sum() / self.rbf(1, self.Dsquared).sum()
 
         return out
+    
+    def parameters(self):
+        """
+        return a list of parameters
+        """
+        return [self.W2]
     
 if __name__ == "__main__":
     ta = FillNet()

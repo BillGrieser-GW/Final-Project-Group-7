@@ -166,14 +166,14 @@ while True:
         train_set = Variable(torch.tensor([[c[1], c[2]] for c in candidates], dtype=torch.int))
         labels = Variable(torch.tensor([c[0] for c in candidates], dtype=torch.float))
         
-        fnet.train()
-        learning_rate = 0.5
+        fnet.start_training()
+        learning_rate = 0.3
         
         # Train the model
         criterion = nn.MSELoss()
-        optimizer = torch.optim.SGD([fnet.W2], lr=learning_rate)
+        optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
         
-        for epoch in range(50):
+        for epoch in range(5000):
             
             optimizer.zero_grad()
             outputs = fnet(train_set)
@@ -182,4 +182,9 @@ while True:
             loss.backward()
             optimizer.step()
             
-            print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+            if (epoch+1) %100 == 0:
+                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+                
+            if loss.item() < 0.0001:    
+                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+                break
