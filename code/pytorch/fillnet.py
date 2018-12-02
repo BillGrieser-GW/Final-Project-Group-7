@@ -26,18 +26,16 @@ class FillNet(nn.Module):
     def reset(self):
         self.pattern_layer = None
         self.summation_layer = torch.zeros(2)
-        self.traning_x_acc = []
-        self.traing_target_acc = []
+        self.pattern_node_locations = set()
         self.W2 = None
         
-    def add_one_training_sample(self, X, target):
+    def add_one_pattern_node(self, X):
         """
-        x: a list [x1, x2] representing a co-ordinate in the image
+        X: a vector [x1, x2] representing a co-ordinate in the image
         to use for training
-        target: A value from 0 to 1 for the pixel value
         """
-        self.traning_x_acc.append(X)
-        self.traing_target_acc.append(target)
+        X_tuple = (X[0], X[1])
+        self.pattern_node_locations.add(X_tuple)
         
     def start_training(self):
         """
@@ -45,10 +43,9 @@ class FillNet(nn.Module):
         the model.
         """
         # Convert training data to torch tensors
-        self.pattern_layer = torch.tensor(np.vstack(self.traning_x_acc))
-        self.W2 = torch.randn(len(self.traning_x_acc), requires_grad=True)
-        #self.W2 = torch.zeros(len(self.traning_x_acc), requires_grad=True)
-        self.targets = torch.tensor(self.traing_target_acc)
+        self.pattern_layer = torch.tensor(np.vstack(self.pattern_node_locations))
+        self.W2 = torch.rand(len(self.pattern_node_locations), requires_grad=True)
+        #self.W2 = torch.zeros(len(self.pattern_node_locations), requires_grad=True)
         
     def rbf(self, W2, Dsquared):
         return W2 * torch.exp(-1 * Dsquared / (2*self.sigmaSq))
@@ -75,9 +72,9 @@ class FillNet(nn.Module):
 if __name__ == "__main__":
     ta = FillNet()
     
-    ta.add_one_training_sample([2,4], 0.5)
-    ta.add_one_training_sample([6,3], 0.2)
-    ta.add_one_training_sample([3,6], 0.9)
-    ta.train()
-    print(ta.forward(torch.tensor([6,3],dtype=torch.int)))
+    ta.add_one_pattern_node([2,4])
+    ta.add_one_pattern_node([6,3])
+    ta.add_one_pattern_node([3,6])
+    ta.start_training()
+    print(ta.forward(torch.tensor([[6,3]],dtype=torch.int)))
 

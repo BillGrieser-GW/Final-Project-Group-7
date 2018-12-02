@@ -155,16 +155,16 @@ while True:
         for x in range(pimg.width):
             for y in range(pimg.height):
                 if pimg.getpixel((x,y)) > 0:
-                    candidates.append((infill_article[0, y, x], x, y))
+                    candidates.append((x, y, infill_article[0, y, x]))
                     
         fnet = fillnet.FillNet().to(device=run_device)
         
         # Load training data
         for c in candidates:
-            fnet.add_one_training_sample((c[1], c[2]), c[0])
+            fnet.add_one_pattern_node((c[0], c[1]))
         
-        train_set = Variable(torch.tensor([[c[1], c[2]] for c in candidates], dtype=torch.int))
-        labels = Variable(torch.tensor([c[0] for c in candidates], dtype=torch.float))
+        train_set = Variable(torch.tensor([[c[0], c[1]] for c in candidates], dtype=torch.int))
+        labels = Variable(torch.tensor([c[2] for c in candidates], dtype=torch.float))
         
         fnet.start_training()
         learning_rate = 0.3
