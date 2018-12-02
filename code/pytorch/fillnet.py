@@ -54,7 +54,7 @@ class FillNet(nn.Module):
         self.W2 = torch.full((len(self.pattern_node_list),), 0.5, requires_grad=True)
         
     def rbf(self, W2, Dsquared):
-        return W2 * torch.exp(-1 * Dsquared / (2*self.sigmaSq))
+        return W2 * (torch.exp(-1 * Dsquared / (2*self.sigmaSq)))
         
     def forward(self, X):
         self.X = X
@@ -76,6 +76,7 @@ class FillNet(nn.Module):
            self.Dsquared[idx] = (self.pattern_layer - X[idx]).pow(2).sum(dim=1).type(torch.float)
            
         out = self.rbf(self.W2, self.Dsquared).sum(dim=1) / self.rbf(1, self.Dsquared).sum(dim=1)
+        #out = self.rbf(self.W2, self.Dsquared).sum(dim=1) 
         
         return out
     

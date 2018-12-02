@@ -120,7 +120,7 @@ while True:
        
         # Make the grad for the last layer by setting the predicted class
         # to 1 and all the others 0 in a vector of grads
-        last_grad = [0] * len(CLASSES)
+        last_grad = [0.1] * len(CLASSES)
         outputs = net(imagev)
         _, predicted = torch.max(outputs.data, 1)
         predicted = predicted.cpu()
@@ -140,39 +140,56 @@ while True:
         thesegrads = (thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min())
         
         # Select the pixels with grads less than a percentile
-        threshold = np.percentile(thesegrads.numpy().flatten(), GRAD_PERCENTILE)
-        selected_pixels = 255 * (thesegrads < threshold)
+        threshold_lo = np.percentile(thesegrads.numpy().flatten(), 0)
+        threshold_hi = np.percentile(thesegrads.numpy().flatten(), 20)
+        quiet_pixels = 128 * ((thesegrads > threshold_lo) & (thesegrads < threshold_hi))
         
-        # Get back to a PIL Image
-        pimg = to_PIL(selected_pixels.view(CHANNELS, IMAGE_SIZE[0], IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
+        # Get back to a PIL Image matching the original size
+        quiet_image = to_PIL(quiet_pixels.view(CHANNELS, IMAGE_SIZE[0], IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
         
         # Get a the image being infilled as a tensor
         infill_article = fill_to_Tensor(digit_image)
         
+        key_pixel_image = quiet_image.copy()
+        
         # Selected pixels are potential traning data for the RBF net
         candidates = []
-        for x in range(pimg.width):
-            for y in range(pimg.height):
-                if pimg.getpixel((x,y)) > 0:
+        for x in range(quiet_image.width):
+            for y in range(quiet_image.height):
+                if quiet_image.getpixel((x,y)) > 0:
                     candidates.append((x, y, infill_article[0, y, x]))
-                    
-        fnet = fillnet.FillNet(sigma=2).to(device=run_device)
+        
+        
+        # Get a list of values used by the candidates
+        values = np.array([c[2].item() for c in candidates])
+        val_median = np.percentile(values, 50)
+        key_pixels = [c for c in candidates if abs(c[2] - val_median) < (values.std() * 0.5)]
+        
+        # Add corners to the key pixels
+        key_pixels.append((0, 0, infill_article[0, 0, 0]))
+        key_pixels.append((digit_image.width-1, 0, infill_article[0, 0, digit_image.width-1]))
+        key_pixels.append((digit_image.width-1, digit_image.height-1, infill_article[0, digit_image.height-1, digit_image.width-1]))
+        key_pixels.append((0, digit_image.height-1, infill_article[0, digit_image.height-1, 0]))
+        
+        fnet = fillnet.FillNet(sigma=np.e).to(device=run_device)
         
         # Load training data
-        for c in candidates:
+        for c in key_pixels:
             fnet.add_one_pattern_node((c[0], c[1]))
+            key_pixel_image.putpixel((c[0], c[1]), 255)
         
-        train_set = Variable(torch.tensor([[c[0], c[1]] for c in candidates], dtype=torch.int))
-        labels = Variable(torch.tensor([c[2] for c in candidates], dtype=torch.float))
+        train_set = Variable(torch.tensor([[c[0], c[1]] for c in key_pixels], dtype=torch.int))
+        labels = Variable(torch.tensor([c[2] for c in key_pixels], dtype=torch.float))
         
         fnet.start_training()
-        learning_rate = 0.3
+        learning_rate = 0.5
         
         # Train the model
         criterion = nn.MSELoss()
         optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
         
-        for epoch in range(5000):
+        FILL_TRAIN_EPOCHS = 10000
+        for epoch in range(FILL_TRAIN_EPOCHS):
             
             optimizer.zero_grad()
             outputs = fnet(train_set)
@@ -184,7 +201,7 @@ while True:
             #if (epoch+1) %100 == 0:
             #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 
-            if loss.item() < 0.0001:    
+            if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
             
@@ -202,16 +219,22 @@ while True:
             pmap[xy[0], xy[1]] = (grayp, grayp, grayp)
                 
         # Display
-        f, ax = plt.subplots(1, 3, figsize=(10,3.5))
+        f, ax = plt.subplots(1, 4, figsize=(10,3.5))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
         ax[0].imshow(digit_image)
         ax[0].set_xlabel("Grayscale Image for digit")  
         
-        ax[1].imshow(pimg)
+        ax[1].imshow(key_pixel_image, cmap="Blues")
         ax[1].set_xlabel("Key Pixels")  
         
         ax[2].imshow(filled_image)
         ax[2].set_xlabel("Filled Image for digit")  
+        
+        ax[3].hist([c[2].item() for c in candidates])
+        #ax[3].set_xlabel("Candidate value histogram") 
+        
+        ax[3].hist([c[2].item() for c in key_pixels])
+        ax[3].set_xlabel("Key pixel value histogram")  
         plt.show()
