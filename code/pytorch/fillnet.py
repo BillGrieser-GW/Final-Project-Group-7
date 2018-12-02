@@ -13,7 +13,7 @@ import numpy as np
 
 class FillNet(nn.Module):
     
-    def __init__(self, sigma=1.2):
+    def __init__(self, sigma=2.2):
         """
         Initialize a network which will be filled out as training
         samples are added

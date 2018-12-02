@@ -14,7 +14,7 @@ import os
 import torch
 import torchvision.transforms as transforms
 import numpy as np
-import numpy.ma as ma
+import matplotlib.pyplot as plt
 
 import torch.nn as nn
 from torch.autograd import Variable
@@ -25,7 +25,6 @@ from svhndatasets import SvhnDigitsDataset
 from PIL import Image
 
 import pickle
-
 import fillnet
 
 # Identify the model to use
@@ -35,7 +34,7 @@ IMAGE_SIZE = (46,46)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 FORCE_CPU = True
-GRAD_THRESHOLD = 0.30
+GRAD_PERCENTILE = 10
 
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
@@ -140,9 +139,9 @@ while True:
         # normalize the grads to a range 0 to 1
         thesegrads = (thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min())
         
-        # Select the pixels with grads less than a threshold
-        selected_pixels = 255 * (thesegrads < GRAD_THRESHOLD)
-        #selected_pixels = imagev
+        # Select the pixels with grads less than a percentile
+        threshold = np.percentile(thesegrads.numpy().flatten(), GRAD_PERCENTILE)
+        selected_pixels = 255 * (thesegrads < threshold)
         
         # Get back to a PIL Image
         pimg = to_PIL(selected_pixels.view(CHANNELS, IMAGE_SIZE[0], IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
@@ -157,7 +156,7 @@ while True:
                 if pimg.getpixel((x,y)) > 0:
                     candidates.append((x, y, infill_article[0, y, x]))
                     
-        fnet = fillnet.FillNet().to(device=run_device)
+        fnet = fillnet.FillNet(sigma=2).to(device=run_device)
         
         # Load training data
         for c in candidates:
@@ -182,11 +181,37 @@ while True:
             loss.backward()
             optimizer.step()
             
-            if (epoch+1) %100 == 0:
-                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+            #if (epoch+1) %100 == 0:
+            #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 
-            if loss.item() < 0.00001:    
+            if loss.item() < 0.0001:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
             
         print("Found weights:", fnet.W2)
+        filled_image = digit_image.copy()
+        pmap = filled_image.load()
+        
+        # Create a new infilled image using the fill net
+        coords = [(x, y) for x in range(filled_image.width) for y in range(filled_image.height)]
+        
+        pixels = fnet.forward(torch.Tensor(coords).type(torch.int)).detach().numpy()
+        
+        for idx, xy in enumerate(coords):
+            grayp = int(255 * pixels[idx])
+            pmap[xy[0], xy[1]] = (grayp, grayp, grayp)
+                
+        # Display
+        f, ax = plt.subplots(1, 3, figsize=(10,3.5))
+        f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
+                   format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
+        
+        ax[0].imshow(digit_image)
+        ax[0].set_xlabel("Grayscale Image for digit")  
+        
+        ax[1].imshow(pimg)
+        ax[1].set_xlabel("Key Pixels")  
+        
+        ax[2].imshow(filled_image)
+        ax[2].set_xlabel("Filled Image for digit")  
+        plt.show()
