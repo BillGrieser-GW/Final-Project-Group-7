@@ -185,6 +185,8 @@ while True:
             if (epoch+1) %100 == 0:
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 
-            if loss.item() < 0.0001:    
+            if loss.item() < 0.00001:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
+            
+        print("Found weights:", fnet.W2)

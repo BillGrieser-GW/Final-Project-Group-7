@@ -26,7 +26,8 @@ class FillNet(nn.Module):
     def reset(self):
         self.pattern_layer = None
         self.summation_layer = torch.zeros(2)
-        self.pattern_node_locations = set()
+        self.pattern_node_set = set()
+        self.pattern_node_list = []
         self.W2 = None
         
     def add_one_pattern_node(self, X):
@@ -35,17 +36,22 @@ class FillNet(nn.Module):
         to use for training
         """
         X_tuple = (X[0], X[1])
-        self.pattern_node_locations.add(X_tuple)
+        
+        # Store if this is a new point
+        if X_tuple not in self.pattern_node_set:
+            self.pattern_node_set.add(X_tuple)
+            self.pattern_node_list.append(X_tuple)
         
     def start_training(self):
         """
-        Use accumulated training samples with their targets to train
-        the model.
+        Prepare the model so it can be trained.
         """
-        # Convert training data to torch tensors
-        self.pattern_layer = torch.tensor(np.vstack(self.pattern_node_locations))
-        self.W2 = torch.rand(len(self.pattern_node_locations), requires_grad=True)
-        #self.W2 = torch.zeros(len(self.pattern_node_locations), requires_grad=True)
+        # Convert training data to torch tensors and build the pattern layer
+        self.pattern_layer = torch.tensor(np.vstack(self.pattern_node_list))
+        
+        # Initialize the weights
+        #self.W2 = torch.rand(len(self.pattern_node_list), requires_grad=True)
+        self.W2 = torch.full((len(self.pattern_node_list),), 0.5, requires_grad=True)
         
     def rbf(self, W2, Dsquared):
         return W2 * torch.exp(-1 * Dsquared / (2*self.sigmaSq))
@@ -54,13 +60,23 @@ class FillNet(nn.Module):
         self.X = X
         out = torch.zeros(len(X))
         
+#        for idx in range(len(X)):
+#            
+#            # Get sqaured distances to all pattern layer points from the input point
+#            self.diffs = (self.pattern_layer - X[idx])
+#            self.Dsquared = self.diffs.pow(2).sum(dim=1).type(torch.float)
+#            
+#            out[idx] = self.rbf(self.W2, self.Dsquared).sum() / self.rbf(1, self.Dsquared).sum()
+
+        self.Dsquared = torch.zeros((len(X), len(self.pattern_layer)))
+        
         for idx in range(len(X)):
             
-            # Get distances to all pattern layer points from the input point
-            self.diffs = (self.pattern_layer - X[idx])
-            self.Dsquared = self.diffs.pow(2).sum(dim=1).type(torch.float)
-            out[idx] = self.rbf(self.W2, self.Dsquared).sum() / self.rbf(1, self.Dsquared).sum()
-
+           # Get sqaured distances to all pattern layer points from this X
+           self.Dsquared[idx] = (self.pattern_layer - X[idx]).pow(2).sum(dim=1).type(torch.float)
+           
+        out = self.rbf(self.W2, self.Dsquared).sum(dim=1) / self.rbf(1, self.Dsquared).sum(dim=1)
+        
         return out
     
     def parameters(self):
