@@ -56,7 +56,8 @@ transform = transforms.Compose([transforms.Grayscale(),
 normalizer = nn.Softmax(dim=1)
 
 to_PIL = transforms.Compose([transforms.ToPILImage()])
-fill_to_Tensor = transforms.Compose([transforms.Grayscale(),
+
+to_gray_tensor = transforms.Compose([transforms.Grayscale(),
                                      transforms.ToTensor()])
 
 DATA_DIR = os.path.join("..", "..", "data")
@@ -117,17 +118,18 @@ while True:
         # Predict this image
         imagev = Variable(transform(digit_image)).to(device=run_device).view(1,1,IMAGE_SIZE[0], IMAGE_SIZE[1])
         imagev.requires_grad_(True)
-       
+        
+        
         # Make the grad for the last layer by setting the predicted class
         # to 1 and all the others 0 in a vector of grads
-        last_grad = [0.1] * len(CLASSES)
+       
         outputs = net(imagev)
         _, predicted = torch.max(outputs.data, 1)
         predicted = predicted.cpu()
         softmaxed = normalizer(outputs)[0]
-        predicted = predicted.cpu()
-        pclass = int(predicted)
+        pclass = int(predicted.cpu())
         
+        last_grad = [-0.1] * len(CLASSES)
         last_grad[pclass] = 1
         outputs.backward(torch.Tensor(last_grad).view(1,-1), retain_graph=True)
         
@@ -148,8 +150,9 @@ while True:
         quiet_image = to_PIL(quiet_pixels.view(CHANNELS, IMAGE_SIZE[0], IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
         
         # Get a the image being infilled as a tensor
-        infill_article = fill_to_Tensor(digit_image)
+        gray_tensor = to_gray_tensor(digit_image)
         
+        # We will visualize the pixels being used to find the background
         key_pixel_image = quiet_image.copy()
         
         # Selected pixels are potential traning data for the RBF net
@@ -157,21 +160,29 @@ while True:
         for x in range(quiet_image.width):
             for y in range(quiet_image.height):
                 if quiet_image.getpixel((x,y)) > 0:
-                    candidates.append((x, y, infill_article[0, y, x]))
-        
-        
+                    candidates.append((x, y, gray_tensor[0, y, x]))
+                    
         # Get a list of values used by the candidates
         values = np.array([c[2].item() for c in candidates])
         val_median = np.percentile(values, 50)
-        key_pixels = [c for c in candidates if abs(c[2] - val_median) < (values.std() * 0.5)]
+        val_mean = values.mean()
         
+        if val_median < val_mean:
+            # We think the region we are mtching is dark, cut off lighter candidates
+            key_pixels = [c for c in candidates if c[2] < (val_median + (values.std() * 0.5))]
+            print("Detecting dark target.")
+        else:
+            # We think the region we are matching is light; cut off darker candidates
+            key_pixels = [c for c in candidates if c[2] > (val_median - (values.std() * 0.5))]
+            print("Detecting light target.")
+             
         # Add corners to the key pixels
-        key_pixels.append((0, 0, infill_article[0, 0, 0]))
-        key_pixels.append((digit_image.width-1, 0, infill_article[0, 0, digit_image.width-1]))
-        key_pixels.append((digit_image.width-1, digit_image.height-1, infill_article[0, digit_image.height-1, digit_image.width-1]))
-        key_pixels.append((0, digit_image.height-1, infill_article[0, digit_image.height-1, 0]))
+        key_pixels.append((0, 0, gray_tensor[0, 0, 0]))
+        key_pixels.append((digit_image.width-1, 0, gray_tensor[0, 0, digit_image.width-1]))
+        key_pixels.append((digit_image.width-1, digit_image.height-1, gray_tensor[0, digit_image.height-1, digit_image.width-1]))
+        key_pixels.append((0, digit_image.height-1, gray_tensor[0, digit_image.height-1, 0]))
         
-        fnet = fillnet.FillNet(sigma=np.e).to(device=run_device)
+        fnet = fillnet.FillNet(sigma=(np.e * 1)).to(device=run_device)
         
         # Load training data
         for c in key_pixels:
@@ -188,7 +199,7 @@ while True:
         criterion = nn.MSELoss()
         optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
         
-        FILL_TRAIN_EPOCHS = 10000
+        FILL_TRAIN_EPOCHS = 5000
         for epoch in range(FILL_TRAIN_EPOCHS):
             
             optimizer.zero_grad()
@@ -212,6 +223,7 @@ while True:
         # Create a new infilled image using the fill net
         coords = [(x, y) for x in range(filled_image.width) for y in range(filled_image.height)]
         
+        # Predict the entire image using the fill net
         pixels = fnet.forward(torch.Tensor(coords).type(torch.int)).detach().numpy()
         
         for idx, xy in enumerate(coords):
@@ -223,7 +235,7 @@ while True:
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
-        ax[0].imshow(digit_image)
+        ax[0].imshow(to_PIL(gray_tensor), cmap="Greys_r")
         ax[0].set_xlabel("Grayscale Image for digit")  
         
         ax[1].imshow(key_pixel_image, cmap="Blues")
@@ -232,9 +244,9 @@ while True:
         ax[2].imshow(filled_image)
         ax[2].set_xlabel("Filled Image for digit")  
         
-        ax[3].hist([c[2].item() for c in candidates])
-        #ax[3].set_xlabel("Candidate value histogram") 
+        ax[3].hist(([c[2].item() for c in candidates],[c[2].item() for c in key_pixels]) )
+        ax[3].set_xlabel("Candidate value histogram") 
         
-        ax[3].hist([c[2].item() for c in key_pixels])
-        ax[3].set_xlabel("Key pixel value histogram")  
+        #ax[4].hist([c[2].item() for c in key_pixels])
+        #ax[4].set_xlabel("Key pixel value histogram")  
         plt.show()
