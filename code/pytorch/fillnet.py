@@ -51,7 +51,7 @@ class FillNet(nn.Module):
         
         # Initialize the weights
         #self.W2 = torch.rand(len(self.pattern_node_list), requires_grad=True)
-        self.W2 = torch.full((len(self.pattern_node_list),), 0.5, requires_grad=True)
+        self.W2 = torch.full((len(self.pattern_node_list),), 0.1, requires_grad=True)
         
     def rbf(self, W2, Dsquared):
         return W2 * (torch.exp(-1 * Dsquared / (2*self.sigmaSq)))

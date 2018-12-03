@@ -11,21 +11,21 @@ import sys
 sys.path.insert(0,"..")
 
 import os
+import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+import time
 import torch
 import torchvision.transforms as transforms
-import numpy as np
-import matplotlib.pyplot as plt
-
 import torch.nn as nn
 from torch.autograd import Variable
+
 from bill_nets import ConvNet
+import fillnet
 
 from svhnpickletypes import SvhnDigit
 from svhndatasets import SvhnDigitsDataset
 from PIL import Image
-
-import pickle
-import fillnet
 
 # Identify the model to use
 STORED_MODEL = os.path.join("results", "bill_net1_1118_195850.pkl")
@@ -119,17 +119,15 @@ while True:
         imagev = Variable(transform(digit_image)).to(device=run_device).view(1,1,IMAGE_SIZE[0], IMAGE_SIZE[1])
         imagev.requires_grad_(True)
         
-        
         # Make the grad for the last layer by setting the predicted class
         # to 1 and all the others 0 in a vector of grads
-       
         outputs = net(imagev)
         _, predicted = torch.max(outputs.data, 1)
         predicted = predicted.cpu()
         softmaxed = normalizer(outputs)[0]
         pclass = int(predicted.cpu())
         
-        last_grad = [-0.1] * len(CLASSES)
+        last_grad = [0] * len(CLASSES)
         last_grad[pclass] = 1
         outputs.backward(torch.Tensor(last_grad).view(1,-1), retain_graph=True)
         
@@ -143,7 +141,7 @@ while True:
         
         # Select the pixels with grads less than a percentile
         threshold_lo = np.percentile(thesegrads.numpy().flatten(), 0)
-        threshold_hi = np.percentile(thesegrads.numpy().flatten(), 20)
+        threshold_hi = np.percentile(thesegrads.numpy().flatten(), 15)
         quiet_pixels = 128 * ((thesegrads > threshold_lo) & (thesegrads < threshold_hi))
         
         # Get back to a PIL Image matching the original size
@@ -182,7 +180,7 @@ while True:
         key_pixels.append((digit_image.width-1, digit_image.height-1, gray_tensor[0, digit_image.height-1, digit_image.width-1]))
         key_pixels.append((0, digit_image.height-1, gray_tensor[0, digit_image.height-1, 0]))
         
-        fnet = fillnet.FillNet(sigma=(np.e * 1)).to(device=run_device)
+        fnet = fillnet.FillNet(sigma=(np.e * 1.5)).to(device=run_device)
         
         # Load training data
         for c in key_pixels:
@@ -199,24 +197,46 @@ while True:
         criterion = nn.MSELoss()
         optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
         
-        FILL_TRAIN_EPOCHS = 5000
+        FILL_TRAIN_EPOCHS = 2000
+        BATCH_SIZE = 1000
+        start_infill_train_time = time.time()
+#        for epoch in range(FILL_TRAIN_EPOCHS):
+#            
+#            optimizer.zero_grad()
+#            outputs = fnet(train_set)
+#        
+#            loss = criterion(outputs, labels)
+#            loss.backward()
+#            optimizer.step()
+#            
+#            #if (epoch+1) %100 == 0:
+#            #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+#                
+#            if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
+#                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
+#                break
+            
         for epoch in range(FILL_TRAIN_EPOCHS):
             
-            optimizer.zero_grad()
-            outputs = fnet(train_set)
-        
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            for idx in range(0, len(train_set), BATCH_SIZE):
+                optimizer.zero_grad()
+                toutputs = fnet(train_set[idx:idx+BATCH_SIZE])
+                loss = criterion(toutputs, labels[idx:idx+BATCH_SIZE])
+                loss.backward()
+                optimizer.step()
             
             #if (epoch+1) %100 == 0:
             #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 
+            outputs = fnet(train_set)
+            loss = criterion(outputs, labels)
             if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
-            
-        print("Found weights:", fnet.W2)
+        
+        end_infill_train_time = time.time()
+        print("Found weights in {0} seconds:".format(int(end_infill_train_time - start_infill_train_time)),
+              fnet.W2)
         filled_image = digit_image.copy()
         pmap = filled_image.load()
         
