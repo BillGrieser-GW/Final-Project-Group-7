@@ -235,7 +235,8 @@ while True:
         
         # Train the model
         criterion = nn.MSELoss()
-        optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
+        #optimizer = torch.optim.SGD(fnet.parameters(), lr=learning_rate)
+        optimizer = torch.optim.Adagrad(fnet.parameters(), lr=learning_rate)
         
         FILL_TRAIN_EPOCHS = 2000
         BATCH_SIZE = 1000
@@ -277,15 +278,17 @@ while True:
         end_infill_train_time = time.time()
         print("Found weights in {0} seconds:\n".format(int(end_infill_train_time - start_infill_train_time)),
               fnet.W2)
+        
         filled_image = digit_image.copy()
         pmap = filled_image.load()
         
-        # Create a new infilled image using the fill net
-        coords = [(x, y) for x in range(filled_image.width) for y in range(filled_image.height)]
-        
         # Predict the entire image using the fill net
-        pixels = fnet.forward(torch.Tensor(coords).type(torch.int).to(device=run_device)).cpu().detach().numpy()
-                        
+        pixels = fnet.forward(torch.Tensor(fnet.coords).type(torch.int).to(device=run_device)).cpu().detach().numpy()
+                  
+        for idx, xy in enumerate(fnet.coords):
+            grayp = int(255 * pixels[idx])
+            pmap[xy[0], xy[1]] = (grayp, grayp, grayp)
+            
         # Display
         f, ax = plt.subplots(1, 5, figsize=(11, 4.5))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
