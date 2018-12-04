@@ -104,7 +104,7 @@ class FillNet(nn.Module):
         """
         return a list of parameters
         """
-        return [self.W2]
+        return [self.W2, self.sigmaSq]
     
 if __name__ == "__main__":
     ta = FillNet(7,5)

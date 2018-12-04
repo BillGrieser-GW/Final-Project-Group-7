@@ -111,7 +111,8 @@ while True:
         image_idx = 0
 
     parent_image = test_data[parent_idx].parent_image
-
+    filled_parent = parent_image.copy()
+    
     for digit in test_data[parent_idx].digit_data:
         
         # Extract this digit
@@ -211,11 +212,11 @@ while True:
         
         if val_median < val_mean:
             # We think the region we are mtching is dark, cut off lighter candidates
-            key_pixels = [c for c in candidates if c[2].mean().item() < (val_median + (values.std() * 0.5))]
+            key_pixels = [c for c in candidates if c[2].mean().item() < (val_median + (values.std() * 0.25))]
             print("Detecting dark target.")
         else:
             # We think the region we are matching is light; cut off darker candidates
-            key_pixels = [c for c in candidates if c[2].mean().item() > (val_median - (values.std() * 0.5))]
+            key_pixels = [c for c in candidates if c[2].mean().item() > (val_median - (values.std() * 0.25))]
             print("Detecting light target.")
              
         # Add corners to the key pixels
@@ -227,7 +228,7 @@ while True:
         # =============================================================================
         # Train fill network      
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(np.e * 0.75), image_width=digit_image.width, image_height=digit_image.height, 
+        fnet = fillnet.FillNet(sigma=(np.e), image_width=digit_image.width, image_height=digit_image.height, 
                                channels=FILL_CHANNELS, device=run_device).to(device=run_device)
         
         # Load training data
@@ -239,7 +240,7 @@ while True:
         labels = Variable(torch.cat([c[2] for c in key_pixels]).view(-1,3)).to(device=run_device)
         
         fnet.start_training()
-        learning_rate = 0.5
+        learning_rate = 0.1
         
         # Train the model
         criterion = nn.MSELoss()
@@ -249,22 +250,15 @@ while True:
         FILL_TRAIN_EPOCHS = 2000
         BATCH_SIZE = 1000
         start_infill_train_time = time.time()
-#        for epoch in range(FILL_TRAIN_EPOCHS):
-#            
-#            optimizer.zero_grad()
-#            outputs = fnet(train_set)
-#        
-#            loss = criterion(outputs, labels)
-#            loss.backward()
-#            optimizer.step()
-#            
-#            #if (epoch+1) %100 == 0:
-#            #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
-#                
-#            if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
-#                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
-#                break
+
+        fnet.sigmaSq.requires_grad = True
+        fnet.W2.requires_grad = False
+        
         for epoch in range(FILL_TRAIN_EPOCHS):
+            
+            temp = fnet.sigmaSq.requires_grad
+            fnet.sigmaSq.requires_grad = fnet.W2.requires_grad
+            fnet.W2.requires_grad = temp
             
             for idx in range(0, len(train_set), BATCH_SIZE):
                 optimizer.zero_grad()
@@ -297,7 +291,7 @@ while True:
             pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
             
         # Display
-        f, all_ax = plt.subplots(1, 5, figsize=(11, 6.5))
+        f, all_ax = plt.subplots(1, 5, figsize=(10, 7))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
@@ -322,5 +316,13 @@ while True:
         ax[4].hist(imagev.cpu().detach().numpy().flatten())
         ax[4].set_xlabel("Historgram of whole image")  
         
-    plt.show()
+        filled_parent.paste(filled_image, digit.get_crop_box())
+        print("SigmaSq:", fnet.sigmaSq.item())
         
+    f, ax = plt.subplots(1, 2, figsize=(10, 3))
+    f.suptitle("Parent Images before and digit replacement")
+    imshowax(ax[0], parent_image)
+    ax[0].set_xlabel("Original")  
+    imshowax(ax[1], filled_parent)
+    ax[1].set_xlabel("Altered")  
+    plt.show()
