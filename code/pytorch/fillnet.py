@@ -21,7 +21,6 @@ class FillNet(nn.Module):
         super(FillNet, self).__init__()
         self.device=device
         self.sigma = sigma
-        self.sigmaSq = torch.tensor(sigma**2, dtype=torch.float).to(device=self.device)
         self.image_width = image_width
         self.image_height = image_height
         self.channels = channels
@@ -55,6 +54,8 @@ class FillNet(nn.Module):
         
         # Initialize the weights for each channel
         self.W2 = torch.rand((self.channels, len(self.pattern_node_list)), requires_grad=True, device=self.device)
+       
+        
         #self.W2 = torch.full((self.channels, len(self.pattern_node_list)), 0.1, requires_grad=True, 
         #                     device=self.device)
         
@@ -66,6 +67,16 @@ class FillNet(nn.Module):
         for idx, xy in enumerate(self.coords):
             X[0], X[1] = xy    
             self.Dsquares[xy] = (self.pattern_layer - X).pow(2).sum(dim=1).type(torch.float).to(device=self.device)
+        
+        
+        self.sigmaSq = torch.full((len(self.pattern_node_list),), self.sigma**2, dtype=torch.float).to(device=self.device)
+        
+        for idx in range(len(self.pattern_layer)):
+            self.my_squares = self.Dsquares[tuple(self.pattern_layer[idx].numpy())]
+            min_not_me = torch.cat((self.my_squares[0:idx], self.my_squares[idx+1:])).min()
+            self.sigmaSq[idx] = 1.0 + np.log(min_not_me)
+        
+        #self.sigmaSq = torch.tensor(self.sigma**2, dtype=torch.float).to(device=self.device)
         
     def rbf(self, W2, Dsquared):
         return W2 * (torch.exp(-1.0 * Dsquared / (2.0 * self.sigmaSq)))

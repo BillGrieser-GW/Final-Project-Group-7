@@ -251,14 +251,14 @@ while True:
         BATCH_SIZE = 1000
         start_infill_train_time = time.time()
 
-        fnet.sigmaSq.requires_grad = True
-        fnet.W2.requires_grad = False
+        fnet.sigmaSq.requires_grad = False
+        fnet.W2.requires_grad = True
         
         for epoch in range(FILL_TRAIN_EPOCHS):
             
-            temp = fnet.sigmaSq.requires_grad
-            fnet.sigmaSq.requires_grad = fnet.W2.requires_grad
-            fnet.W2.requires_grad = temp
+#            temp = fnet.sigmaSq.requires_grad
+#            fnet.sigmaSq.requires_grad = fnet.W2.requires_grad
+#            fnet.W2.requires_grad = temp
             
             for idx in range(0, len(train_set), BATCH_SIZE):
                 optimizer.zero_grad()
@@ -317,10 +317,10 @@ while True:
         ax[4].set_xlabel("Historgram of whole image")  
         
         filled_parent.paste(filled_image, digit.get_crop_box())
-        print("SigmaSq:", fnet.sigmaSq.item())
+        print("SigmaSq:", fnet.sigmaSq)
         
     f, ax = plt.subplots(1, 2, figsize=(10, 3))
-    f.suptitle("Parent Images before and digit replacement")
+    f.suptitle("Parent Images before and digit replacement (Image {0})".format(parent_idx))
     imshowax(ax[0], parent_image)
     ax[0].set_xlabel("Original")  
     imshowax(ax[1], filled_parent)
