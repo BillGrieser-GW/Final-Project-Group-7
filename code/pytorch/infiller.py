@@ -228,7 +228,7 @@ while True:
         # =============================================================================
         # Train fill network      
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(np.e), image_width=digit_image.width, image_height=digit_image.height, 
+        fnet = fillnet.FillNet(sigma=(np.e/2 + 0.5), image_width=digit_image.width, image_height=digit_image.height, 
                                channels=FILL_CHANNELS, device=run_device).to(device=run_device)
         
         # Load training data
