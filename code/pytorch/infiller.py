@@ -31,10 +31,11 @@ from PIL import Image
 STORED_MODEL = os.path.join("results", "bill_net1_1118_195850.pkl")
 
 IMAGE_SIZE = (46,46)
-CHANNELS = 1
-INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
+PREDICT_CHANNELS = 1
+INPUT_SIZE = (PREDICT_CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 FORCE_CPU = False
 GRAD_PERCENTILE = 10
+FILL_CHANNELS = 3
 
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
@@ -51,7 +52,7 @@ else:
 transform = transforms.Compose([transforms.Grayscale(),
                                 transforms.Resize(IMAGE_SIZE),
                                 transforms.ToTensor(), 
-                                transforms.Normalize((0.5,) * CHANNELS, (0.5,) * CHANNELS)])
+                                transforms.Normalize((0.5,) * PREDICT_CHANNELS, (0.5,) * PREDICT_CHANNELS)])
 
 normalizer = nn.Softmax(dim=1)
 
@@ -59,6 +60,8 @@ to_PIL = transforms.Compose([transforms.ToPILImage()])
 
 to_gray_tensor = transforms.Compose([transforms.Grayscale(),
                                      transforms.ToTensor()])
+    
+to_color_tensor = transforms.Compose([transforms.ToTensor()])
 
 DATA_DIR = os.path.join("..", "..", "data")
 
@@ -69,7 +72,7 @@ with open(os.path.join(DATA_DIR, "test_parent_data.pkl"), 'rb') as f:
 print("Done Reading test data.")
 
 # Instantiate a model
-net = ConvNet(num_classes, CHANNELS, IMAGE_SIZE).to(device=run_device)
+net = ConvNet(num_classes, PREDICT_CHANNELS, IMAGE_SIZE).to(device=run_device)
 print(net)
 total_net_parms = net.get_total_parms()
 print ("Total trainable parameters:", total_net_parms)
@@ -181,10 +184,15 @@ while True:
         quiet_pixels = 128 * ((thesegrads > threshold_lo) & (thesegrads < threshold_hi))
         
         # Get back to a PIL Image matching the original size
-        quiet_image = to_PIL(quiet_pixels.view(CHANNELS, IMAGE_SIZE[0], IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
+        quiet_image = to_PIL(quiet_pixels.view(PREDICT_CHANNELS, IMAGE_SIZE[0], 
+                                               IMAGE_SIZE[1])).resize((digit.width, digit.height)) 
         
         # Get a the image being infilled as a tensor
-        gray_tensor = to_gray_tensor(digit_image).to(device=run_device)
+        #gray_tensor = to_gray_tensor(digit_image).to(device=run_device)
+        
+        # Get the image pixels in a tensor where the last dimension is RGB (instead)
+        # of the first dimension being the channel
+        color_tensor = to_color_tensor(digit_image).to(device=run_device).permute(1,2,0)
         
         # We will visualize the pixels being used to find the background
         key_pixel_image = quiet_image.copy()
@@ -194,33 +202,33 @@ while True:
         for x in range(quiet_image.width):
             for y in range(quiet_image.height):
                 if quiet_image.getpixel((x,y)) > 0:
-                    candidates.append((x, y, gray_tensor[0, y, x]))
+                    candidates.append((x, y, color_tensor[y, x]))
                     
-        # Get a list of values used by the candidates
-        values = np.array([c[2].item() for c in candidates])
+        # Average the RGB and make a list of all averages to figure out light/dark
+        values = np.array([c[2].mean().item() for c in candidates])
         val_median = np.percentile(values, 50)
         val_mean = values.mean()
         
         if val_median < val_mean:
             # We think the region we are mtching is dark, cut off lighter candidates
-            key_pixels = [c for c in candidates if c[2] < (val_median + (values.std() * 0.5))]
+            key_pixels = [c for c in candidates if c[2].mean().item() < (val_median + (values.std() * 0.5))]
             print("Detecting dark target.")
         else:
             # We think the region we are matching is light; cut off darker candidates
-            key_pixels = [c for c in candidates if c[2] > (val_median - (values.std() * 0.5))]
+            key_pixels = [c for c in candidates if c[2].mean().item() > (val_median - (values.std() * 0.5))]
             print("Detecting light target.")
              
         # Add corners to the key pixels
-        key_pixels.append((0, 0, gray_tensor[0, 0, 0]))
-        key_pixels.append((digit_image.width-1, 0, gray_tensor[0, 0, digit_image.width-1]))
-        key_pixels.append((digit_image.width-1, digit_image.height-1, gray_tensor[0, digit_image.height-1, digit_image.width-1]))
-        key_pixels.append((0, digit_image.height-1, gray_tensor[0, digit_image.height-1, 0]))
+        key_pixels.append((0, 0, color_tensor[0, 0]))
+        key_pixels.append((digit_image.width-1, 0, color_tensor[0, digit_image.width-1]))
+        key_pixels.append((digit_image.width-1, digit_image.height-1, color_tensor[digit_image.height-1, digit_image.width-1]))
+        key_pixels.append((0, digit_image.height-1, color_tensor[digit_image.height-1, 0]))
         
         # =============================================================================
         # Train fill network      
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(1.1), image_width=digit_image.width, image_height=digit_image.height, 
-                               device=run_device).to(device=run_device)
+        fnet = fillnet.FillNet(sigma=(np.e), image_width=digit_image.width, image_height=digit_image.height, 
+                               channels=FILL_CHANNELS, device=run_device).to(device=run_device)
         
         # Load training data
         for c in key_pixels:
@@ -228,7 +236,7 @@ while True:
             key_pixel_image.putpixel((c[0], c[1]), 255)
         
         train_set = Variable(torch.tensor([[c[0], c[1]] for c in key_pixels], dtype=torch.int, device=run_device))
-        labels = Variable(torch.tensor([c[2] for c in key_pixels], dtype=torch.float, device=run_device))
+        labels = Variable(torch.cat([c[2] for c in key_pixels]).view(-1,3)).to(device=run_device)
         
         fnet.start_training()
         learning_rate = 0.5
@@ -256,13 +264,12 @@ while True:
 #            if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
 #                print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
 #                break
-            
         for epoch in range(FILL_TRAIN_EPOCHS):
             
             for idx in range(0, len(train_set), BATCH_SIZE):
                 optimizer.zero_grad()
                 toutputs = fnet(train_set[idx:idx+BATCH_SIZE])
-                loss = criterion(toutputs, labels[idx:idx+BATCH_SIZE])
+                loss = criterion(toutputs, labels[idx:idx+BATCH_SIZE].view(-1, FILL_CHANNELS))
                 loss.backward()
                 optimizer.step()
             
@@ -270,7 +277,7 @@ while True:
             #    print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 
             outputs = fnet(train_set)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels.view(-1, FILL_CHANNELS))
             if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
@@ -286,8 +293,8 @@ while True:
         pixels = fnet.forward(torch.Tensor(fnet.coords).type(torch.int).to(device=run_device)).cpu().detach().numpy()
                   
         for idx, xy in enumerate(fnet.coords):
-            grayp = int(255 * pixels[idx])
-            pmap[xy[0], xy[1]] = (grayp, grayp, grayp)
+            #grayp = int(255 * pixels[idx])
+            pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
             
         # Display
         f, ax = plt.subplots(1, 5, figsize=(11, 4.5))
@@ -295,8 +302,11 @@ while True:
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
         # ax[0].imshow(to_PIL(gray_tensor.cpu()), cmap="Greys_r")
-        imshowax(ax[0], to_PIL(gray_tensor.cpu()))
-        ax[0].set_xlabel("Grayscale Image for digit")  
+        #imshowax(ax[0], to_PIL(gray_tensor.cpu()))
+        #ax[0].set_xlabel("Grayscale Image for digit") 
+        imshowax(ax[0], digit_image)
+        #ax[0].imshow(digit_image)
+        ax[0].set_xlabel("Image for digit") 
         
         #ax[1].imshow(key_pixel_image, cmap="Blues")
         imshowax(ax[1], key_pixel_image, cmap="Blues")
@@ -305,7 +315,7 @@ while True:
         imshowax(ax[2], filled_image)
         ax[2].set_xlabel("Filled Image for digit")  
         
-        ax[3].hist(([c[2].item() for c in candidates],[c[2].item() for c in key_pixels]) )
+        ax[3].hist(([c[2].mean().item() for c in candidates], [c[2].mean().item() for c in key_pixels]) )
         ax[3].set_xlabel("Candidate value histogram") 
         
         ax[4].hist(imagev.cpu().detach().numpy().flatten())

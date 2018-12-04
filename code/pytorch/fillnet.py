@@ -53,9 +53,9 @@ class FillNet(nn.Module):
         # Convert training data to torch tensors and build the pattern layer
         self.pattern_layer = torch.tensor(np.vstack(self.pattern_node_list), dtype=torch.int).to(self.device)
         
-        # Initialize the weights
-        self.W2 = torch.rand(len(self.pattern_node_list), requires_grad=True, device=self.device)
-        #elf.W2 = torch.full((len(self.pattern_node_list),), 0.1, requires_grad=True, 
+        # Initialize the weights for each channel
+        self.W2 = torch.rand((self.channels, len(self.pattern_node_list)), requires_grad=True, device=self.device)
+        #self.W2 = torch.full((self.channels, len(self.pattern_node_list)), 0.1, requires_grad=True, 
         #                     device=self.device)
         
         # Generate the Dsquared from all points to the pattern layer
@@ -86,11 +86,17 @@ class FillNet(nn.Module):
         
         for idx in range(len(X)):
             
-           # Get sqaured distances to all pattern layer points from this X
+           # Get sqaured distances to all pattern layer points from this X by
+           # getting them from the precomputed values
            self.Dsquared[idx] = self.Dsquares[tuple(X[idx].cpu().numpy())]
            
-        out = self.rbf(self.W2, self.Dsquared).sum(dim=1) / self.rbf(1, self.Dsquared).sum(dim=1)
-        #out = self.rbf(self.W2, self.Dsquared).sum(dim=1) 
+        self.channel_out = []
+        
+        for cidx in range(self.channels):
+            self.channel_out.append(self.rbf(self.W2[cidx], self.Dsquared).sum(dim=1) / self.rbf(1, self.Dsquared).sum(dim=1))
+            
+        # Repackage the channels so that all channels for a pixel are on the same row
+        out = torch.cat(self.channel_out, dim=0).view(self.channels, -1).transpose(0,1)
         
         return out
     
