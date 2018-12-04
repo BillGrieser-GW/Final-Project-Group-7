@@ -297,13 +297,14 @@ while True:
             pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
             
         # Display
-        f, ax = plt.subplots(1, 5, figsize=(11, 4.5))
+        f, all_ax = plt.subplots(1, 5, figsize=(11, 6.5))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
         # ax[0].imshow(to_PIL(gray_tensor.cpu()), cmap="Greys_r")
         #imshowax(ax[0], to_PIL(gray_tensor.cpu()))
         #ax[0].set_xlabel("Grayscale Image for digit") 
+        ax = all_ax
         imshowax(ax[0], digit_image)
         #ax[0].imshow(digit_image)
         ax[0].set_xlabel("Image for digit") 
@@ -320,5 +321,6 @@ while True:
         
         ax[4].hist(imagev.cpu().detach().numpy().flatten())
         ax[4].set_xlabel("Historgram of whole image")  
-        f.show()
-        plt.show()
+        
+    plt.show()
+        
