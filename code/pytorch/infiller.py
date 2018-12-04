@@ -219,7 +219,8 @@ while True:
         # =============================================================================
         # Train fill network      
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(1.1), device=run_device).to(device=run_device)
+        fnet = fillnet.FillNet(sigma=(1.1), image_width=digit_image.width, image_height=digit_image.height, 
+                               device=run_device).to(device=run_device)
         
         # Load training data
         for c in key_pixels:
@@ -284,11 +285,7 @@ while True:
         
         # Predict the entire image using the fill net
         pixels = fnet.forward(torch.Tensor(coords).type(torch.int).to(device=run_device)).cpu().detach().numpy()
-        
-        for idx, xy in enumerate(coords):
-            grayp = int(255 * pixels[idx])
-            pmap[xy[0], xy[1]] = (grayp, grayp, grayp)
-                
+                        
         # Display
         f, ax = plt.subplots(1, 5, figsize=(11, 4.5))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
