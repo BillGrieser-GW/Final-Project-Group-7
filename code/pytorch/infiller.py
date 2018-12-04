@@ -227,7 +227,7 @@ while True:
         # =============================================================================
         # Train fill network      
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(np.e), image_width=digit_image.width, image_height=digit_image.height, 
+        fnet = fillnet.FillNet(sigma=(np.e * 0.75), image_width=digit_image.width, image_height=digit_image.height, 
                                channels=FILL_CHANNELS, device=run_device).to(device=run_device)
         
         # Load training data
@@ -278,7 +278,7 @@ while True:
                 
             outputs = fnet(train_set)
             loss = criterion(outputs, labels.view(-1, FILL_CHANNELS))
-            if loss.item() < 0.0001 or epoch+1 == FILL_TRAIN_EPOCHS:    
+            if loss.item() < 0.00005 or epoch+1 == FILL_TRAIN_EPOCHS:    
                 print("Epoch: {0} Loss: {1}".format(epoch+1, loss.item()))
                 break
         
