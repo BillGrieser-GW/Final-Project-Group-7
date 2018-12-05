@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class FillNet(nn.Module):
     
     def __init__(self, image_width, image_height, channels=1, device='cpu', sigma=np.e):

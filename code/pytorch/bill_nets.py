@@ -6,6 +6,8 @@ Created on Sun Nov 18 10:50:06 2018
 """
 import torch.nn as nn
 import numpy as np
+import torchvision.transforms as transforms
+
 
 class BaseNet(nn.Module):
     """
@@ -23,6 +25,15 @@ class BaseNet(nn.Module):
         for t in self.state_dict().values():
             total_parms += int(np.prod(t.shape))
         return total_parms
+    
+    def get_transformer(self):
+        """
+        Make a torch transformation function that the network expect.
+        """
+        return transforms.Compose([transforms.Grayscale(),
+                                transforms.Resize(self.image_size),
+                                transforms.ToTensor(), 
+                                transforms.Normalize((0.5,) * self.channels, (0.5,) * self.channels)])
     
 # Define a model class. This uses purelin() as the second-layer
 # transfer function
@@ -69,4 +80,5 @@ class ConvNet(BaseNet):
         out = out.view(in_size, -1)
         out = self.fc(out)
         return out
+    
     
