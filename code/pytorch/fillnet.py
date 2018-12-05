@@ -14,7 +14,8 @@ import PIL
 
 class FillNet(nn.Module):
     
-    def __init__(self, image_width, image_height, channels=1, device='cpu', sigma=np.e):
+    def __init__(self, image_width, image_height, channels=1, device='cpu', \
+                 sigma=np.e, adapt_sigma=True):
         """
         Initialize a network which will be filled out as training
         samples are added. Sigma should be 1 or greater.
@@ -25,6 +26,7 @@ class FillNet(nn.Module):
         self.image_width = image_width
         self.image_height = image_height
         self.channels = channels
+        self.adapt_sigma = adapt_sigma
         self.reset()
         
     def reset(self):
@@ -60,8 +62,7 @@ class FillNet(nn.Module):
        
         self.W2 = nn.Parameter(torch.full((self.channels, len(self.pattern_node_list)), 1, requires_grad=True, 
                              device=self.device))
-        self.sigmaSq = torch.full((len(self.pattern_node_list),), self.sigma**2, 
-                                               requires_grad=False, dtype=torch.float).to(device=self.device)
+        
         
         # Generate the Dsquared from all points to the pattern layer
         self.coords = [(x, y) for x in range(self.image_width) for y in range(self.image_height)]
@@ -72,12 +73,14 @@ class FillNet(nn.Module):
             X[0], X[1] = xy    
             self.Dsquares[xy] = (self.pattern_layer - X).pow(2).sum(dim=1).type(torch.float).to(device=self.device)
         
-        for idx in range(len(self.pattern_layer)):
-            self.my_squares = self.Dsquares[tuple(self.pattern_layer[idx].numpy())]
-            min_not_me = torch.cat((self.my_squares[0:idx], self.my_squares[idx+1:])).min()
-            self.sigmaSq[idx] = 1.0 + np.sqrt(min_not_me) 
+        self.sigmaSq = torch.full((len(self.pattern_node_list),), self.sigma**2, 
+                                               requires_grad=False, dtype=torch.float).to(device=self.device)
+        if self.adapt_sigma:
+            for idx in range(len(self.pattern_layer)):
+                self.my_squares = self.Dsquares[tuple(self.pattern_layer[idx].numpy())]
+                min_not_me = torch.cat((self.my_squares[0:idx], self.my_squares[idx+1:])).min()
+                self.sigmaSq[idx] = 1.0 + (np.log(min_not_me) * 1.5) 
         
-      
     def rbf(self, W2, Dsquared):
         return W2 * (torch.exp(-1.0 * Dsquared / (2.0 * self.sigmaSq)))
         
