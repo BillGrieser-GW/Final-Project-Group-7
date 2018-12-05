@@ -10,7 +10,7 @@ with modificications
 import torch
 import torch.nn as nn
 import numpy as np
-
+import PIL
 
 class FillNet(nn.Module):
     
@@ -85,14 +85,6 @@ class FillNet(nn.Module):
         self.X = X
         out = torch.zeros(len(X), dtype=torch.float, device=self.device)
         
-#        for idx in range(len(X)):
-#            
-#            # Get sqaured distances to all pattern layer points from the input point
-#            self.diffs = (self.pattern_layer - X[idx])
-#            self.Dsquared = self.diffs.pow(2).sum(dim=1).type(torch.float)
-#            
-#            out[idx] = self.rbf(self.W2, self.Dsquared).sum() / self.rbf(1, self.Dsquared).sum()
-
         self.Dsquared = torch.zeros((len(X), len(self.pattern_layer)), dtype=torch.float).to(device=self.device)
         
         for idx in range(len(X)):
@@ -111,11 +103,28 @@ class FillNet(nn.Module):
         
         return out
     
-    def parameters(self):
+    def generate_image(self):
         """
-        return a list of parameters
+        Use the trained network to generate a PIL image with the given image width and height
         """
-        return [self.W2, self.sigmaSq]
+        out = PIL.Image.new("RGB", (self.image_width, self.image_height))
+        
+        pmap = out.load()
+        
+        # Predict the entire image using the fill net
+        pixels = self.forward(torch.Tensor(self.coords).type(torch.int).to(device=self.device)).cpu().detach().numpy()
+                  
+        for idx, xy in enumerate(self.coords):
+            #grayp = int(255 * pixels[idx])
+            pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
+            
+        return out
+        
+#    def parameters(self):
+#        """
+#        return a list of parameters
+#        """
+#        return [self.W2, self.sigmaSq]
     
 if __name__ == "__main__":
     ta = FillNet(7,5)

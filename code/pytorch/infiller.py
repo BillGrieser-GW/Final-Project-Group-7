@@ -7,6 +7,7 @@ Created on Fri Nov 30 11:13:32 2018
 
 import sys
 
+
 # Allow imports from parent dir
 sys.path.insert(0,"..")
 
@@ -49,11 +50,6 @@ normalizer = nn.Softmax(dim=1)
 
 # Make transforms for converting to and from various formats
 to_PIL = transforms.Compose([transforms.ToPILImage()])
-
-to_gray_tensor = transforms.Compose([transforms.Grayscale(),
-                                     transforms.ToTensor()])
-    
-to_color_tensor = transforms.Compose([transforms.ToTensor()])
 
 # Open the pickle of test parent images
 print("Reading test data pickles")
@@ -109,15 +105,17 @@ while True:
         pclass = int(predicted.cpu())
         print ("Predicted class:", pclass)
         
+        # =============================================================================
+        # Find pixels from the image to use as training data for the image fill   
+        # =============================================================================
         kpf = key_pixels.KeyPixelFinder(net, CLASSES, device=run_device)
-        
         training_pixels, quiet_image, candidates = kpf.get_using_grad_near_average(digit_image, pclass, imagev)
         
         # We will visualize the pixels being used to find the background
         training_pixel_image = quiet_image.copy()
         
         # =============================================================================
-        # Train fill network      
+        # Make a train network to use to fill the image    
         # =============================================================================
         fnet = fillnet.FillNet(sigma=(np.e/2 + 0.5), image_width=digit_image.width, image_height=digit_image.height, 
                                channels=FILL_CHANNELS, device=run_device).to(device=run_device)
@@ -170,16 +168,9 @@ while True:
         print("Found weights in {0} seconds:\n".format(int(end_infill_train_time - start_infill_train_time)),
               fnet.W2)
         
-        filled_image = digit_image.copy()
-        pmap = filled_image.load()
+        # Use the trained network to generate an image
+        filled_image = fnet.generate_image()
         
-        # Predict the entire image using the fill net
-        pixels = fnet.forward(torch.Tensor(fnet.coords).type(torch.int).to(device=run_device)).cpu().detach().numpy()
-                  
-        for idx, xy in enumerate(fnet.coords):
-            #grayp = int(255 * pixels[idx])
-            pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
-            
         # Display
         f, all_ax = plt.subplots(1, 5, figsize=(10, 7))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
