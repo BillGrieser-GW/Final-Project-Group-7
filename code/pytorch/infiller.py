@@ -142,7 +142,6 @@ while True:
 #        
 #        # normalize the grads to a range 0 to 1
 #        thesegrads = (thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min())
-        
         other_grads = []
         wavg = torch.zeros((net.image_size[0],net.image_size[1]), device=run_device)
         weightsum = 0
@@ -151,7 +150,7 @@ while True:
             
             if imagev.grad is not None:
                 imagev.grad.data.zero_()
-            
+                
             # Select the output we want grads for
             last_grad = [0] * len(CLASSES)
             last_grad[idx] = 1
@@ -161,7 +160,7 @@ while True:
             outputs.backward(torch.Tensor(last_grad).to(device=run_device).view(1,-1), retain_graph=True)
             classgrads = imagev.grad[0,0].clone()
             
-            # normalize
+            # normalize the grads to a range 0 to 1
             classgrads = (classgrads - classgrads.min()) / (classgrads.max() - classgrads.min())
             
             if idx == pclass:
@@ -206,10 +205,13 @@ while True:
                     candidates.append((x, y, color_tensor[y, x]))
                     
         # Average the RGB and make a list of all averages to figure out light/dark
-        values = np.array([c[2].mean().item() for c in candidates])
-        val_median = np.percentile(values, 50)
-        val_mean = values.mean()
-        
+        if len(candidates) > 0:
+            values = np.array([c[2].mean().item() for c in candidates])
+            val_median = np.percentile(values, 50)
+            val_mean = values.mean()
+        else:
+            val_median, val_mean = (.5, .5)
+            
         if val_median < val_mean:
             # We think the region we are mtching is dark, cut off lighter candidates
             key_pixels = [c for c in candidates if c[2].mean().item() < (val_median + (values.std() * 0.25))]
@@ -256,12 +258,11 @@ while True:
         
         for epoch in range(FILL_TRAIN_EPOCHS):
             
-#            temp = fnet.sigmaSq.requires_grad
-#            fnet.sigmaSq.requires_grad = fnet.W2.requires_grad
-#            fnet.W2.requires_grad = temp
+            #fnet.sigmaSq.requires_grad = (epoch % 2 == 1)
+            #fnet.W2.requires_grad = (epoch % 2 == 0)
             
             for idx in range(0, len(train_set), BATCH_SIZE):
-                optimizer.zero_grad()
+                fnet.zero_grad()
                 toutputs = fnet(train_set[idx:idx+BATCH_SIZE])
                 loss = criterion(toutputs, labels[idx:idx+BATCH_SIZE].view(-1, FILL_CHANNELS))
                 loss.backward()
