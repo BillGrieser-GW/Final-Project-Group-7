@@ -9,7 +9,10 @@ def imshowax(ax, img, cmap='Greys_r'):
     """
     #img = img / 2 + 0.5
     if type(img) == torch.Tensor:
-        showimg = img.numpy().transpose(1,2,0)
+        if img.dim() == 3:
+            showimg = img.detach().numpy().transpose(1,2,0)
+        else:
+            showimg = img.detach().numpy()
     else:
         showimg = img
        

@@ -143,6 +143,34 @@ class KeyPixelFinder():
         
         return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, lambda x: light_dark_filter(0.20, x) )
     
+    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None):
+        
+        if original_tensor is None:
+            original_tensor = self.net.get_transformer()(original_PIL_image)
+        
+        if predicted_class == None:
+            outputs = self.net(original_tensor)
+            _, predicted = torch.max(outputs.data, 1)
+            predicted_class = int(predicted.cpu())
+            
+        # =============================================================================
+        #  FEATURE MAPS
+        # =============================================================================
+        fmaps = self.net.layer1[0].forward(original_tensor).cpu().detach()
+        
+        # Get std of each pixel across the feature maps
+        fstd = fmaps[0].std(dim=0)
+        
+        # Figure out if this is mostly low or mostly high values
+        if fstd.median() < fstd.mean():
+            # Mostly low -- get a low threshold
+            quiet_pixels = fstd < np.percentile(fstd, 10)
+        else:
+            # Mostly high
+            quiet_pixels = fstd > np.percentile(fstd, 90)
+        
+        return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, None )
+    
     def get_using_grid(self, original_PIL_image, predicted_class=None, original_tensor=None):
         
         quiet_pixels = torch.zeros((self.net.image_size[0], self.net.image_size[1]), dtype=torch.float)

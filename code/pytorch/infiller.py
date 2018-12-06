@@ -111,7 +111,8 @@ while True:
         kpf = key_pixels.KeyPixelFinder(net, CLASSES, hi_threshold_pct=8, device=run_device)
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_near_average(digit_image, pclass, imagev)
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_value(digit_image, pclass, imagev)
-        training_pixels, quiet_image, candidates = kpf.get_using_grid(digit_image, pclass, imagev)
+        #training_pixels, quiet_image, candidates = kpf.get_using_grid(digit_image, pclass, imagev)
+        training_pixels, quiet_image, candidates = kpf.get_using_fmaps_std(digit_image, pclass, imagev)
         
         # We will visualize the pixels being used to find the background
         training_pixel_image = quiet_image.copy()
@@ -119,7 +120,7 @@ while True:
         # =============================================================================
         # Make a train network to use to fill the image    
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(1.2), adapt_sigma=True, image_width=digit_image.width, 
+        fnet = fillnet.FillNet(sigma=(1.8), adapt_sigma=False, image_width=digit_image.width, 
                                image_height=digit_image.height, channels=FILL_CHANNELS, 
                                device=run_device).to(device=run_device)
         
@@ -156,6 +157,29 @@ while True:
         
         filled_parent.paste(filled_image, digit.get_crop_box())
         print("SigmaSq:", fnet.sigmaSq)
+        
+        f, all_ax = plt.subplots(4, 8, figsize=(11, 6))
+        f.suptitle("Feature maps for Actual: {0} Predicted: {1} Parent: {2}".
+                   format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
+                   
+        fmaps = net.layer1[0].forward(imagev).detach()
+        
+        for rg in range(4):
+            for cg in range(8):
+                imshowax(all_ax[rg, cg], fmaps[0, rg*8 + cg])
+                all_ax[rg, cg].set_xlabel("{0}".format(rg*8 + cg))
+                
+        f, all_ax = plt.subplots(1, 3, figsize=(11, 6))
+        f.suptitle("Fmap mean & Std Deviation for Actual: {0} Predicted: {1} Parent: {2}".
+                   format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
+        imshowax(all_ax[0], fmaps[0].mean(dim=0))
+        all_ax[0].set_xlabel("Feature Map Mean")
+        imshowax(all_ax[1], fmaps[0].std(dim=0))
+        all_ax[1].set_xlabel("Feature Map Std Deviation")
+        imshowax(all_ax[2], fmaps[0].mean(dim=0) - fmaps[0].std(dim=0))
+        all_ax[2].set_xlabel("Feature mean - std")
+        
+        #print(net.layer1[0].weight.grad.mean(dim=1).mean(dim=1).mean(dim=1) + net.layer1[0].bias)
         
     f, ax = plt.subplots(1, 2, figsize=(10, 3))
     f.suptitle("Parent Images before and digit replacement (Image {0})".format(parent_idx))
