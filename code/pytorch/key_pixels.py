@@ -164,22 +164,37 @@ class KeyPixelFinder():
         # Figure out if this is mostly low or mostly high values
         if fstd.median() < fstd.mean():
             # Mostly low -- get a low threshold
-            quiet_pixels = fstd < np.percentile(fstd, 40)
+            quiet_pixels = fstd < np.percentile(fstd, 20)
         else:
-            # Mostly high
-            quiet_pixels = fstd > np.percentile(fstd, 60)
+            # Mostly high; get a high threshold
+            quiet_pixels = fstd > np.percentile(fstd, 80)
         
-        # Turn into a grid
-        allowable_h = [x for x in range(0, self.net.image_size[0], 3)]
-        allowable_w = [x for x in range(0, self.net.image_size[1], 3)]
+        quiet_image = to_PIL(quiet_pixels.view(self.net.channels, self.net.image_size[0], 
+                                               self.net.image_size[1])).resize((original_PIL_image.width, original_PIL_image.height)) 
         
-        for h in range(self.net.image_size[0]):
-            for w in range(self.net.image_size[1]):
-                # If this is not a point on the grid, clear it
-                if not (h in allowable_h and w in allowable_w):
-                    quiet_pixels[h,w] = 0
+         # Get the image pixels in a tensor where the last dimension is RGB (instead)
+        # of the first dimension being the channel
+        color_tensor = to_color_tensor(original_PIL_image).to(device=self.device).permute(1,2,0)
+
+        # Selected pixels are potential traning data for the RBF net
+        candidates = []
+        for x in range(0, quiet_image.width, 3):
+            for y in range(0, quiet_image.height, 3):
+                if quiet_image.getpixel((x,y)) == 1:
+                    candidates.append((x, y, color_tensor[y, x]))
+                    
+        # Apply filter if requested. Note that all candidates remain in the
+        # quiet image
+        #key_pixels = light_dark_filter(0.1, candidates)
+        key_pixels = candidates
         
-        return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, None )
+        # Add corners to the key pixels
+        key_pixels.append((0, 0, color_tensor[0, 0]))
+        key_pixels.append((original_PIL_image.width-1, 0, color_tensor[0, original_PIL_image.width-1]))
+        key_pixels.append((original_PIL_image.width-1, original_PIL_image.height-1, color_tensor[original_PIL_image.height-1, original_PIL_image.width-1]))
+        key_pixels.append((0, original_PIL_image.height-1, color_tensor[original_PIL_image.height-1, 0]))
+        
+        return key_pixels, quiet_image, candidates
     
     def get_using_grid(self, original_PIL_image, predicted_class=None, original_tensor=None):
         
