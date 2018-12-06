@@ -120,7 +120,7 @@ while True:
         # =============================================================================
         # Make a train network to use to fill the image    
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(1.8), adapt_sigma=False, image_width=digit_image.width, 
+        fnet = fillnet.FillNet(sigma=(1), adapt_sigma=True, image_width=digit_image.width, 
                                image_height=digit_image.height, channels=FILL_CHANNELS, 
                                device=run_device).to(device=run_device)
         

@@ -164,10 +164,20 @@ class KeyPixelFinder():
         # Figure out if this is mostly low or mostly high values
         if fstd.median() < fstd.mean():
             # Mostly low -- get a low threshold
-            quiet_pixels = fstd < np.percentile(fstd, 10)
+            quiet_pixels = fstd < np.percentile(fstd, 40)
         else:
             # Mostly high
-            quiet_pixels = fstd > np.percentile(fstd, 90)
+            quiet_pixels = fstd > np.percentile(fstd, 60)
+        
+        # Turn into a grid
+        allowable_h = [x for x in range(0, self.net.image_size[0], 3)]
+        allowable_w = [x for x in range(0, self.net.image_size[1], 3)]
+        
+        for h in range(self.net.image_size[0]):
+            for w in range(self.net.image_size[1]):
+                # If this is not a point on the grid, clear it
+                if not (h in allowable_h and w in allowable_w):
+                    quiet_pixels[h,w] = 0
         
         return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, None )
     
