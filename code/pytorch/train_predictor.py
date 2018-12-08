@@ -1,13 +1,12 @@
 # =============================================================================
-# net 1
-#
-# Pytorch, using GPU iof available
+# Train a network on the SVHN dataset
 #
 # =============================================================================
 
 # --------------------------------------------------------------------------------------------
 import os
 import sys
+import argparse
 
 # Allow imports from parent dir
 sys.path.insert(0,"..")
@@ -28,17 +27,24 @@ import pickle
 
 import predictor_nets 
 
-#
-# Initially try a network with a single hidden layer of 500 neurons
-# and a moderate number of neurons and learning rate
-# 
+# Get command-line arguments
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('integers', metavar='N', type=int, nargs='+',
+                   help='an integer for the accumulator')
+parser.add_argument('--sum', dest='accumulate', action='store_const',
+                   const=sum, default=max,
+                   help='sum the integers (default: find the max)')
+
+args = parser.parse_args()
+
+sys.exit()
 
 IMAGE_SIZE = (48,48)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 hidden_size = 500
 num_classes = 10
-num_epochs = 100
+num_epochs = 2
 batch_size = 128
 learning_rate = .001
 
@@ -186,7 +192,9 @@ with open(run_base + suffix + '_results.txt', 'w') as rfile:
     rfile.write("Batch Size: {0}\n".format(batch_size))
     rfile.write("Final loss: {0:0.4f}\n".format(loss.data.item()))
     rfile.write("Run device: {0}\n".format(run_device))
-    rfile.write("Run device: {0}\n".format(net.num_conv_outputs))
+    rfile.write("Num Conv outputs: {0}\n".format(net.num_conv_outputs))
+    rfile.write("Loss function: {0}\n".format(str(criterion)))
+    rfile.write("Optimizer:\n{0}\n".format(str(optimizer)))
     rfile.write("Elapsed time: {0:d}\n".format(int(end_time - start_time)))
     rfile.write('\n')
     rfile.write('Accuracy of the network on the {0:d} test images: {1:0.1f}%\n'.format(total, float(100 * correct) / total))

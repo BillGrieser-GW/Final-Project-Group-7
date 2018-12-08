@@ -7,7 +7,6 @@ Created on Fri Nov 30 11:13:32 2018
 
 import sys
 
-
 # Allow imports from parent dir
 sys.path.insert(0,"..")
 
@@ -20,17 +19,17 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 from torch.autograd import Variable
 
-from bill_nets import ConvNet
+import predictor_nets
 import fillnet
 import fillnet_trainer
 import key_pixels
 
 from plot_helpers import imshowax
 # Identify the model to use
-STORED_MODEL = os.path.join("results", "bill_net1_1118_195850.pkl")
+STORED_MODEL = os.path.join("results", "basis_runs", "bill_net1_1208_030907.pkl")
 DATA_DIR = os.path.join("..", "..", "data")
 
-IMAGE_SIZE = (46,46)
+IMAGE_SIZE = (32,32)
 PREDICT_CHANNELS = 1
 GRAD_PERCENTILE = 10
 FILL_CHANNELS = 3
@@ -38,7 +37,7 @@ FILL_CHANNELS = 3
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
 
-FORCE_CPU = False
+FORCE_CPU = True
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")
     run_device = torch.device('cuda')
@@ -58,7 +57,7 @@ with open(os.path.join(DATA_DIR, "test_parent_data.pkl"), 'rb') as f:
 print("Done Reading test data.")
 
 # Instantiate a model to use to predict
-net = ConvNet(num_classes, PREDICT_CHANNELS, IMAGE_SIZE).to(device=run_device)
+net = predictor_nets.ConvNet48(num_classes, PREDICT_CHANNELS, IMAGE_SIZE).to(device=run_device)
 transform = net.get_transformer()
 
 print(net)
@@ -83,7 +82,7 @@ while True:
         
     except:
         print("Bad input -- assuimg 0")
-        image_idx = 0
+        parent_idx = 0
 
     # Process this parent image
     parent_image = test_data[parent_idx].parent_image
@@ -108,7 +107,7 @@ while True:
         # =============================================================================
         # Find pixels from the image to use as training data for the image fill   
         # =============================================================================
-        kpf = key_pixels.KeyPixelFinder(net, CLASSES, hi_threshold_pct=8, device=run_device)
+        kpf = key_pixels.KeyPixelFinder(net, CLASSES, device=run_device)
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_near_average(digit_image, pclass, imagev)
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_value(digit_image, pclass, imagev)
         #training_pixels, quiet_image, candidates = kpf.get_using_grid(digit_image, pclass, imagev)
@@ -120,11 +119,11 @@ while True:
         # =============================================================================
         # Make a train network to use to fill the image    
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(np.e), adapt_sigma=False, image_width=digit_image.width, 
+        fnet = fillnet.FillNet(sigma=(1.2), adapt_sigma=False, image_width=digit_image.width,
                                image_height=digit_image.height, channels=FILL_CHANNELS, 
                                device=run_device).to(device=run_device)
-        
-        fillnet_trainer.train(fnet, training_pixels,training_pixel_image)
+
+        fillnet_trainer.train(fnet, training_pixels, training_pixel_image)
         
         # Use the trained network to generate an image
         filled_image = fnet.generate_image()
@@ -133,7 +132,7 @@ while True:
         # Display
         # =============================================================================
         
-        f, all_ax = plt.subplots(1, 5, figsize=(10, 7))
+        f, all_ax = plt.subplots(1, 3, figsize=(10, 7))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
@@ -149,27 +148,27 @@ while True:
         imshowax(ax[2], filled_image)
         ax[2].set_xlabel("Filled Image for digit")  
         
-        ax[3].hist(([c[2].mean().item() for c in candidates], [c[2].mean().item() for c in training_pixels]) )
-        ax[3].set_xlabel("Training value histogram") 
-        
-        ax[4].hist(imagev.cpu().detach().numpy().flatten())
-        ax[4].set_xlabel("Historgram of whole image")  
+#        ax[3].hist(([c[2].mean().item() for c in candidates], [c[2].mean().item() for c in training_pixels]) )
+#        ax[3].set_xlabel("Training value histogram") 
+#        
+#        ax[4].hist(imagev.cpu().detach().numpy().flatten())
+#        ax[4].set_xlabel("Historgram of whole image")  
         
         filled_parent.paste(filled_image, digit.get_crop_box())
         print("SigmaSq:", fnet.sigmaSq)
         
-        f, all_ax = plt.subplots(4, 8, figsize=(11, 6))
+        f, all_ax = plt.subplots(6, 8, figsize=(12, 6))
         f.suptitle("Feature maps for Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
                    
         fmaps = net.layer1[0].forward(imagev).detach()
         
-        for rg in range(4):
+        for rg in range(6):
             for cg in range(8):
                 imshowax(all_ax[rg, cg], fmaps[0, rg*8 + cg])
                 all_ax[rg, cg].set_xlabel("{0}".format(rg*8 + cg))
                 
-        f, all_ax = plt.subplots(1, 3, figsize=(11, 6))
+        f, all_ax = plt.subplots(1, 4, figsize=(11, 6))
         f.suptitle("Fmap mean & Std Deviation for Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         imshowax(all_ax[0], fmaps[0].mean(dim=0))
@@ -178,6 +177,8 @@ while True:
         all_ax[1].set_xlabel("Feature Map Std Deviation")
         imshowax(all_ax[2], fmaps[0].mean(dim=0) - fmaps[0].std(dim=0))
         all_ax[2].set_xlabel("Feature mean - std")
+        imshowax(all_ax[3], fmaps[0].mean(dim=0) / fmaps[0].std(dim=0))
+        all_ax[3].set_xlabel("Feature mean / std")
         
         #print(net.layer1[0].weight.grad.mean(dim=1).mean(dim=1).mean(dim=1) + net.layer1[0].bias)
         

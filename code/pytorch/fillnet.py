@@ -62,8 +62,7 @@ class FillNet(nn.Module):
        
         self.W2 = nn.Parameter(torch.full((self.channels, len(self.pattern_node_list)), 1, requires_grad=True, 
                              device=self.device))
-        
-        
+
         # Generate the Dsquared from all points to the pattern layer
         self.coords = [(x, y) for x in range(self.image_width) for y in range(self.image_height)]
         
@@ -71,7 +70,7 @@ class FillNet(nn.Module):
         
         for idx, xy in enumerate(self.coords):
             X[0], X[1] = xy    
-            self.Dsquares[xy] = (self.pattern_layer - X).pow(2).sum(dim=1).type(torch.float).to(device=self.device)
+            self.Dsquares[xy] = (self.pattern_layer - X.to(self.device)).pow(2).sum(dim=1).type(torch.float).to(device=self.device)
         
         self.sigmaSq = torch.full((len(self.pattern_node_list),), self.sigma**2, 
                                                requires_grad=False, dtype=torch.float).to(device=self.device)
@@ -119,7 +118,12 @@ class FillNet(nn.Module):
                   
         for idx, xy in enumerate(self.coords):
             #grayp = int(255 * pixels[idx])
-            pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
+            try:
+
+                pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
+            except:
+                pmap[xy[0], xy[1]] = (0,0,0)
+                print("Error for pixel:", xy)
             
         return out
         

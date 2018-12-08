@@ -143,7 +143,7 @@ class KeyPixelFinder():
         
         return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, lambda x: light_dark_filter(0.20, x) )
     
-    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None):
+    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None, side_stride=5):
         
         if original_tensor is None:
             original_tensor = self.net.get_transformer()(original_PIL_image)
@@ -159,15 +159,15 @@ class KeyPixelFinder():
         fmaps = self.net.layer1[0].forward(original_tensor).cpu().detach()
         
         # Get std of each pixel across the feature maps
-        fstd = fmaps[0].std(dim=0)
+        fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0)
         
         # Figure out if this is mostly low or mostly high values
         if fstd.median() < fstd.mean():
             # Mostly low -- get a low threshold
-            quiet_pixels = fstd < np.percentile(fstd, 20)
+            quiet_pixels = (fstd > np.percentile(fstd, 0)) & (fstd < np.percentile(fstd, 15))
         else:
             # Mostly high; get a high threshold
-            quiet_pixels = fstd > np.percentile(fstd, 80)
+            quiet_pixels = (fstd > np.percentile(fstd, 85)) & (fstd < np.percentile(fstd, 100))
         
         quiet_image = to_PIL(quiet_pixels.view(self.net.channels, self.net.image_size[0], 
                                                self.net.image_size[1])).resize((original_PIL_image.width, original_PIL_image.height)) 
@@ -178,8 +178,8 @@ class KeyPixelFinder():
 
         # Selected pixels are potential traning data for the RBF net
         candidates = []
-        for x in range(0, quiet_image.width, 3):
-            for y in range(0, quiet_image.height, 3):
+        for x in range(0, quiet_image.width, 2):
+            for y in range(0, quiet_image.height, 2):
                 if quiet_image.getpixel((x,y)) == 1:
                     candidates.append((x, y, color_tensor[y, x]))
                     
@@ -194,6 +194,17 @@ class KeyPixelFinder():
         key_pixels.append((original_PIL_image.width-1, original_PIL_image.height-1, color_tensor[original_PIL_image.height-1, original_PIL_image.width-1]))
         key_pixels.append((0, original_PIL_image.height-1, color_tensor[original_PIL_image.height-1, 0]))
         
+#        # Add sides to the key pixels
+#        side_stride = int(original_PIL_image.width / 4)
+#        if side_stride > 0:
+#            for x in range(0, original_PIL_image.width, side_stride):
+#                key_pixels.append((x, 0, color_tensor[0, x]))
+#                key_pixels.append((x, original_PIL_image.height-1, color_tensor[original_PIL_image.height-1, x]))
+#                
+#            for y in range(0, original_PIL_image.height, side_stride):
+#                key_pixels.append((0, y, color_tensor[y, 0])) 
+#                key_pixels.append((original_PIL_image.width-1, y, color_tensor[y, original_PIL_image.width-1])) 
+                
         return key_pixels, quiet_image, candidates
     
     def get_using_grid(self, original_PIL_image, predicted_class=None, original_tensor=None):
