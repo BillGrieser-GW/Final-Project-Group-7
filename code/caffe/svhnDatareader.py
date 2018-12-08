@@ -1,46 +1,68 @@
 import scipy.io as sio
-import matplotlib.pyplot as plt
 import numpy as np
 import caffe
 import lmdb
 import random
 from caffe.proto import caffe_pb2
 
-print "Loading matlab data: "
-mat_data = sio.loadmat("train_32x32.mat")
-data = mat_data['X']
-label = mat_data['y']
-print(label)
-for i in range(10):
-    plt.subplot(2, 5, i+1)
-    plt.title(label[i][0])
-    plt.imshow(data[..., i])
-    plt.axis('off')
-plt.show()
+def main():
+    #load matlab data
+    train = sio.loadmat("Data/train_32x32.mat")
+    test = sio.loadmat("Data/test_32x32.mat")
 
-data = data.transpose((3, 2, 0, 1))
-print(data.shape)
+    X_train = train['X']
+    y_train = train['y']
+    X_test = test['X']
+    y_test = test['y']
 
-N = label.shape[0]
-map_size = data.nbytes * 10
-env = lmdb.open("train_lmdb", map_size=map_size, writemap=True)
-txn = env.begin(write=True)
-r = list(range(N))
-random.shuffle(r)
+    #transpose the data
 
+    X_train = X_train.transpose((3,2,0,1))
+    X_test = X_test.transpose((3,2,0,1))
 
-count = 0
-for i in r:
-    datum = caffe_pb2.Datum()
-    label_number = int(label[i][0])
-    if label_number == 10:
-        label_number == 0
-    datum = caffe.io.array_to_datum(data[i], label_number)
-    str_id = '{:08}'.format(count)
-    txn.put(str_id, datum.SerializeToString())
-    count = count + 1
+    N = X_train.shape[0]
+    map_size = X_train.nbytes * 10
 
-    if count%1000 == 0:
-        print("Already handled with {} pictures".format(count))
+    env = lmdb.open("train_lmdb", map_size=map_size)
+    txn = env.begin(write=True)
+    r = list(range(N))
+    random.shuffle(r)
+
+    count = 0
+    for i in r:
+        datum = caffe_pb2.Datum()
+        label = int(y_train[i][0])
+        if label == 10:
+            label = 0
+        datum = caffe.io.array_to_datum(X_train[i], label)
+        str_id = '{:08}'.format(count)
+        txn.put(str_id, datum.SerializeToString())
+        count = count + 1
+
     txn.commit()
-env.close()
+    env.close()
+
+    map_size_test = X_test.nbytes * 10
+
+    env = lmdb.open("test_lmdb", map_size=map_size_test)
+    txn = env.begin(write=True)
+
+    count = 0
+    for i in range(X_test.shape[0]):
+        datum = caffe_pb2.Datum()
+        label = int(y_test[i][0])
+        if label == 10:
+            label = 0
+        datum = caffe.io.array_to_datum(X_test[i], label)
+        str_id = '{:08}'.format(count)
+        txn.put(str_id, datum.SerializeToString())
+        count = count + 1
+
+    txn.commit()
+    env.close()
+
+    print "Finished creating train and test lmdb"
+    return 0
+
+
+main()
