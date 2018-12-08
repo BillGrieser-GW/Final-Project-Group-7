@@ -52,6 +52,7 @@ optimizer = args.opt
 FORCE_CPU = args.cpu
 num_epochs = args.epochs
 
+print("Run starting . . .")
 print("Using optimizer:", optimizer, "\nwith batch size:", batch_size, 
       "and epochs:", num_epochs)
 
@@ -251,3 +252,5 @@ with open(run_base + suffix + '_measures.csv', 'w') as mfile:
     mwriter = csv.writer(mfile)
     for obs in run_history:
         mwriter.writerow(obs)
+
+print("Completed normally.\n")

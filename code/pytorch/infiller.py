@@ -21,7 +21,7 @@ from torch.autograd import Variable
 
 import predictor_nets
 import fillnet
-import fillnet_trainer
+from fillnet_trainer import FillNetTrainer
 import key_pixels
 
 from plot_helpers import imshowax
@@ -119,12 +119,22 @@ while True:
         # =============================================================================
         # Make a train network to use to fill the image    
         # =============================================================================
-        fnet = fillnet.FillNet(sigma=(1.2), adapt_sigma=False, image_width=digit_image.width,
+        fnet = fillnet.FillNet(sigma=(1.8), adapt_sigma=False, image_width=digit_image.width,
                                image_height=digit_image.height, channels=FILL_CHANNELS, 
                                device=run_device).to(device=run_device)
 
-        fillnet_trainer.train(fnet, training_pixels, training_pixel_image)
+        trainer = FillNetTrainer(fnet)
         
+        trainer.train(training_pixels, training_pixel_image)
+        
+        # Synthisize more training data from the initial batch in order to 
+        # get a smoother image
+        idx = 0
+        while idx < 1000:
+            new_pixels = trainer.augment_and_retrain()
+            if len(new_pixels) == 0:
+                break
+            
         # Use the trained network to generate an image
         filled_image = fnet.generate_image()
         
