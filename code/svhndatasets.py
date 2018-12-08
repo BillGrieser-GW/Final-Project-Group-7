@@ -5,16 +5,16 @@ Created on Sat Nov 17 08:51:15 2018
 @author: billg_000
 """
 
-import torch
+from torch.utils.data import Dataset
 
 # Make a dataset wrapper for the images
-class SvhnDigitsDataset(torch.utils.data.Dataset):
+class SvhnDigitsDataset(Dataset):
     
     def __init__(self, digits_data, transform=lambda x:x):
         """
         digits_data: a SvhnDigitPickle 
         """
-        super(torch.utils.data.Dataset, self).__init__()
+        super(Dataset, self).__init__()
         
         self.digits_data = digits_data
         self.transform = transform
@@ -27,13 +27,13 @@ class SvhnDigitsDataset(torch.utils.data.Dataset):
            self.digits_data[index].data.label
            
            
-class SvhnParentsDataset(torch.utils.data.Dataset):
+class SvhnParentsDataset(Dataset):
     
     def __init__(self, parents_data, transform=lambda x:x):
         """
         digits_data: a SvhnDigitPickle 
         """
-        super(torch.utils.data.Dataset, self).__init__()
+        super(Dataset, self).__init__()
         
         self.parents_data = parents_data
         self.transform = transform

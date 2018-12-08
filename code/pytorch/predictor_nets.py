@@ -54,6 +54,7 @@ class BaseNet(nn.Module):
         print("Calculating outputs", self.num_conv_outputs)
         return self.num_conv_outputs
     
+    
 # Define a model class. This uses purelin() as the second-layer
 # transfer function
 class FlatNet(BaseNet):
@@ -70,7 +71,8 @@ class FlatNet(BaseNet):
         out = self.relu(out)
         out = self.fc2(out)
         return out
-    
+
+
 class ConvNet32(BaseNet):
     def __init__(self, num_classes, channels, image_size):
         super(ConvNet32, self).__init__(num_classes, channels, image_size)
@@ -102,6 +104,7 @@ class ConvNet32(BaseNet):
         out = out.view(in_size, -1)
         out = self.fc(out)
         return out
+
 
 class ConvNet48(BaseNet):
     def __init__(self, num_classes, channels, image_size):
@@ -135,4 +138,34 @@ class ConvNet48(BaseNet):
         out = self.fc(out)
         return out
 
+class ConvNet32_753(BaseNet):
+    def __init__(self, num_classes, channels, image_size):
+        super(ConvNet32_753, self).__init__(num_classes, channels, image_size)
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=7, padding=3),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=5, padding=2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2))
 
+        self.calculate_conv_layer_output_size((self.layer1, self.layer2, self.layer3))
+
+        self.fc = nn.Linear(self.num_conv_outputs, self.num_classes)
+
+    def forward(self, x):
+        in_size = x.size(0)
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = out.view(in_size, -1)
+        out = self.fc(out)
+        return out
