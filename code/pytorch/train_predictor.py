@@ -30,7 +30,9 @@ optimizer_args = lambda x: {"SGD": torch.optim.SGD,
 
 network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32, 
                            "ConvNet48": predictor_nets.ConvNet48,
-                           "ConvNet32_753": predictor_nets.ConvNet32_753}[x]
+                           "ConvNet32_753": predictor_nets.ConvNet32_753,
+                           "ConvNet48_333": predictor_nets.ConvNet48_333,
+                           "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout}[x]
 
 # Get command-line arguments
 parser = argparse.ArgumentParser(description='Train SVHN predictor.')
@@ -41,7 +43,7 @@ parser.add_argument('--epochs', type=int, default=2,
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
                    help='Optimizer (SGD, Adagrad, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet32', 
-                   help='Network architecure (ConvNet32, ConvNet48, Convnet32_753)')
+                   help='Network architecure (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout)')
 parser.add_argument('--lr', type=float, default=0.001,
                    help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
