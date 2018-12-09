@@ -159,7 +159,7 @@ class KeyPixelFinder():
         fmaps = self.net.layer1[0].forward(original_tensor).cpu().detach()
         
         # Get std of each pixel across the feature maps
-        fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0)
+        fstd = fmaps[0].std(dim=0) #- fmaps[0].std(dim=0)
         
         # Figure out if this is mostly low or mostly high values
         if fstd.median() < fstd.mean():
@@ -178,8 +178,8 @@ class KeyPixelFinder():
 
         # Selected pixels are potential traning data for the RBF net
         candidates = []
-        for x in range(0, quiet_image.width, 2):
-            for y in range(0, quiet_image.height, 2):
+        for x in range(0, quiet_image.width, 3):
+            for y in range(0, quiet_image.height, 3):
                 if quiet_image.getpixel((x,y)) == 1:
                     candidates.append((x, y, color_tensor[y, x]))
                     
