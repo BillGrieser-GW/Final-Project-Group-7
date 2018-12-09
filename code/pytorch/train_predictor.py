@@ -26,11 +26,14 @@ import predictor_nets
 # =============================================================================
 optimizer_args = lambda x: {"SGD": torch.optim.SGD, 
                             "ASGD": torch.optim.ASGD, \
+                            "Adadelta": torch.optim.Adadelta, \
                             "Adagrad": torch.optim.Adagrad}[x]
 
 network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32, 
                            "ConvNet48": predictor_nets.ConvNet48,
-                           "ConvNet32_753": predictor_nets.ConvNet32_753}[x]
+                           "ConvNet32_753": predictor_nets.ConvNet32_753,
+                           "ConvNet48_333": predictor_nets.ConvNet48_333,
+                           "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout}[x]
 
 # Get command-line arguments
 parser = argparse.ArgumentParser(description='Train SVHN predictor.')
@@ -39,9 +42,11 @@ parser.add_argument('--batch', type=int, default=32,
 parser.add_argument('--epochs', type=int, default=2,
                    help='Epochs')
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
-                   help='Optimizer (SGD, Adagrad, ASGD)')
+                   help='Optimizer (SGD, Adagrad, Adadelta, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet32', 
-                   help='Network archicture (ConvNet32, ConvNet48, Convnet32_753)')
+                   help='Network architecure (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout)')
+parser.add_argument('--lr', type=float, default=0.001,
+                   help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
                    help='Force to CPU even if GPU present')
 args = parser.parse_args()
@@ -51,6 +56,7 @@ network_class = args.net
 optimizer = args.opt
 FORCE_CPU = args.cpu
 num_epochs = args.epochs
+learning_rate = args.lr
 
 print("Run starting . . .")
 print("Using optimizer:", optimizer, "\nwith batch size:", batch_size, 
@@ -63,7 +69,7 @@ IMAGE_SIZE = (40,40)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 num_classes = 10
-learning_rate = .001
+
 
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")
@@ -222,7 +228,7 @@ if sys.argv[0] != '':
     run_base = os.path.basename(sys.argv[0])
     run_base = os.path.join(os.path.splitext(run_base)[0])
     
-run_base=os.path.join('results', run_base)
+run_base=os.path.join('results', "A_" + run_base)
 
 # Save run artifacts
 torch.save(net.state_dict(), run_base + suffix + '.pkl')

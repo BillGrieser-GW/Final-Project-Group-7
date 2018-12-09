@@ -75,7 +75,7 @@ class FillNetTrainer():
         
         end_infill_train_time = time.time()
         
-        print("Found weights in {0} seconds in {1} epochs with loss: {2}, pattern layer size: {3}.\n".format(
+        print("Found weights in {0} seconds in {1} epochs with loss: {2}, pattern layer size: {3}.".format(
                 int(end_infill_train_time - start_infill_train_time),
                 epoch+1, loss.item(), len(self.fnet.pattern_layer)))
         
