@@ -172,7 +172,7 @@ class ConvNet32_753(BaseNet):
 
 class ConvNet48_333(BaseNet):
     def __init__(self, num_classes, channels, image_size):
-        super(ConvNet48, self).__init__(num_classes, channels, image_size)
+        super(ConvNet48_333, self).__init__(num_classes, channels, image_size)
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 48, kernel_size=3, padding=1),  # (32 * prod(image_size))
             nn.BatchNorm2d(48),
@@ -204,7 +204,7 @@ class ConvNet48_333(BaseNet):
 
 class ConvNet48_Dropout(BaseNet):
     def __init__(self, num_classes, channels, image_size):
-        super(ConvNet48, self).__init__(num_classes, channels, image_size)
+        super(ConvNet48_Dropout, self).__init__(num_classes, channels, image_size)
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 48, kernel_size=3, padding=1),  # (32 * prod(image_size))
             nn.BatchNorm2d(48),

@@ -26,6 +26,7 @@ import predictor_nets
 # =============================================================================
 optimizer_args = lambda x: {"SGD": torch.optim.SGD, 
                             "ASGD": torch.optim.ASGD, \
+                            "Adadelta": torch.optim.Adadelta, \
                             "Adagrad": torch.optim.Adagrad}[x]
 
 network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32, 
@@ -41,7 +42,7 @@ parser.add_argument('--batch', type=int, default=32,
 parser.add_argument('--epochs', type=int, default=2,
                    help='Epochs')
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
-                   help='Optimizer (SGD, Adagrad, ASGD)')
+                   help='Optimizer (SGD, Adagrad, Adadelta, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet32', 
                    help='Network architecure (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout)')
 parser.add_argument('--lr', type=float, default=0.001,
@@ -227,7 +228,7 @@ if sys.argv[0] != '':
     run_base = os.path.basename(sys.argv[0])
     run_base = os.path.join(os.path.splitext(run_base)[0])
     
-run_base=os.path.join('results', run_base)
+run_base=os.path.join('results', "A_" + run_base)
 
 # Save run artifacts
 torch.save(net.state_dict(), run_base + suffix + '.pkl')
