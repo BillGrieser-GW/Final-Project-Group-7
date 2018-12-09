@@ -26,13 +26,15 @@ import key_pixels
 
 from plot_helpers import imshowax
 # Identify the model to use
-STORED_MODEL = os.path.join("results", "basis_runs", "bill_net1_1208_030907.pkl")
-DATA_DIR = os.path.join("..", "..", "data")
+STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+FEATURE_MAPS = 48
 
-IMAGE_SIZE = (32,32)
+DATA_DIR = os.path.join("..", "..", "data")
+IMAGE_SIZE = (40,40)
 PREDICT_CHANNELS = 1
 GRAD_PERCENTILE = 10
 FILL_CHANNELS = 3
+
 
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
@@ -142,7 +144,7 @@ while True:
         # Display
         # =============================================================================
         
-        f, all_ax = plt.subplots(1, 3, figsize=(10, 7))
+        f, all_ax = plt.subplots(1, 4, figsize=(10, 7))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
@@ -165,15 +167,15 @@ while True:
 #        ax[4].set_xlabel("Historgram of whole image")  
         
         filled_parent.paste(filled_image, digit.get_crop_box())
-        print("SigmaSq:", fnet.sigmaSq)
+        #print("SigmaSq:", fnet.sigmaSq)
         
-        f, all_ax = plt.subplots(6, 8, figsize=(12, 6))
+        f, all_ax = plt.subplots(int(FEATURE_MAPS/8), 8, figsize=(12, 6))
         f.suptitle("Feature maps for Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
                    
         fmaps = net.layer1[0].forward(imagev).detach()
         
-        for rg in range(6):
+        for rg in range(int(FEATURE_MAPS/8)):
             for cg in range(8):
                 imshowax(all_ax[rg, cg], fmaps[0, rg*8 + cg])
                 all_ax[rg, cg].set_xlabel("{0}".format(rg*8 + cg))
@@ -187,8 +189,11 @@ while True:
         all_ax[1].set_xlabel("Feature Map Std Deviation")
         imshowax(all_ax[2], fmaps[0].mean(dim=0) - fmaps[0].std(dim=0))
         all_ax[2].set_xlabel("Feature mean - std")
-        imshowax(all_ax[3], fmaps[0].mean(dim=0) / fmaps[0].std(dim=0))
-        all_ax[3].set_xlabel("Feature mean / std")
+        all_ax[3].hist((fmaps[0].mean(dim=0) - fmaps[0].std(dim=0)).flatten())
+        all_ax[3].set_xlabel("Feature mean - std hist")
+        
+        #imshowax(all_ax[3], fmaps[0].mean(dim=0).pow(fmaps[0].std(dim=0)))
+        #all_ax[3].set_xlabel("Feature mean/std")
         
         #print(net.layer1[0].weight.grad.mean(dim=1).mean(dim=1).mean(dim=1) + net.layer1[0].bias)
         

@@ -41,7 +41,9 @@ parser.add_argument('--epochs', type=int, default=2,
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
                    help='Optimizer (SGD, Adagrad, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet32', 
-                   help='Network archicture (ConvNet32, ConvNet48, Convnet32_753)')
+                   help='Network architecure (ConvNet32, ConvNet48, Convnet32_753)')
+parser.add_argument('--lr', type=float, default=0.001,
+                   help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
                    help='Force to CPU even if GPU present')
 args = parser.parse_args()
@@ -51,6 +53,7 @@ network_class = args.net
 optimizer = args.opt
 FORCE_CPU = args.cpu
 num_epochs = args.epochs
+learning_rate = args.lr
 
 print("Run starting . . .")
 print("Using optimizer:", optimizer, "\nwith batch size:", batch_size, 
@@ -63,7 +66,7 @@ IMAGE_SIZE = (40,40)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 num_classes = 10
-learning_rate = .001
+
 
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")

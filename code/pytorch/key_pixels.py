@@ -159,15 +159,17 @@ class KeyPixelFinder():
         fmaps = self.net.layer1[0].forward(original_tensor).cpu().detach()
         
         # Get std of each pixel across the feature maps
-        fstd = fmaps[0].std(dim=0) #- fmaps[0].std(dim=0)
+        fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0) 
         
         # Figure out if this is mostly low or mostly high values
         if fstd.median() < fstd.mean():
             # Mostly low -- get a low threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 0)) & (fstd < np.percentile(fstd, 15))
+            quiet_pixels = (fstd > np.percentile(fstd, 3)) & (fstd < np.percentile(fstd, 16))
+            print("Going dark")
         else:
             # Mostly high; get a high threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 85)) & (fstd < np.percentile(fstd, 100))
+            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
+            print("Going light")
         
         quiet_image = to_PIL(quiet_pixels.view(self.net.channels, self.net.image_size[0], 
                                                self.net.image_size[1])).resize((original_PIL_image.width, original_PIL_image.height)) 
