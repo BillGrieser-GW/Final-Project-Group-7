@@ -1,0 +1,6 @@
+#!/bin/bash
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt SGD --net ConvNet64 --lr 0.005 --id B
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt SGD --net ConvNet48_Dropout2 --lr 0.005 --id B
+

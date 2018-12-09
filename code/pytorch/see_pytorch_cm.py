@@ -71,9 +71,6 @@ print ("Total trainable parameters:", total_net_parms)
 net.load_state_dict(torch.load(STORED_MODEL, map_location=run_device))
 print("Loading model from: ", STORED_MODEL)
 
-total_net_parms = net.get_total_parms()
-print ("Total trainable parameters:", total_net_parms)
-
 # Turn test data into something the model can use
 test_set = SvhnDigitsDataset(test_data, transform=net.get_transformer())
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
@@ -184,8 +181,7 @@ def show_pred_loop():
         if image_idx >= 0 and image_idx < len(test_set):
             
             # Get the image & label
-            image, label = test_set[image_idx]    
-            
+            image, label = test_set[image_idx]
             imagev = Variable(image).to(device=run_device).view(1,1,IMAGE_SIZE[0],IMAGE_SIZE[1])
             imagev.requires_grad_(True)
             
@@ -205,8 +201,8 @@ def show_pred_loop():
             f, ax = plt.subplots(1, 4, figsize=(10,8))
             f.suptitle("Image: {2} Parent: {3}\nActual: {0} Predicted: {1}".
                    format(classes[label], classes[pclass], image_idx, test_data[image_idx].data.file_name))
-            
-            ax[0].imshow(test_data[image_idx].digit_image)
+
+            imshowax(ax[0], test_data[image_idx].digit_image)
             ax[0].set_xlabel("Original Image for digit")
             
             imshowax(ax[1], imagev.detach().view(net.image_size[0], net.image_size[1]))
@@ -234,6 +230,6 @@ def show_pred_loop():
 if __name__ == "__main__":
 
     # Confusion Matrix
-    c_matrix = show_evaluation_metrics(net, run_device, test_loader)
+    #c_matrix = show_evaluation_metrics(net, run_device, test_loader)
 
     show_pred_loop()

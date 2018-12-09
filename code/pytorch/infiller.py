@@ -39,7 +39,7 @@ GRID_SPACING = 3
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
 
-FORCE_CPU = True
+FORCE_CPU = False
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")
     run_device = torch.device('cuda')
