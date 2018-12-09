@@ -27,7 +27,8 @@ import predictor_nets
 optimizer_args = lambda x: {"SGD": torch.optim.SGD, 
                             "ASGD": torch.optim.ASGD, \
                             "Adadelta": torch.optim.Adadelta, \
-                            "Adagrad": torch.optim.Adagrad}[x]
+                            "Adagrad": torch.optim.Adagrad,
+                            "Adam": torch.optim.Adam}[x]
 
 network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32, 
                            "ConvNet48": predictor_nets.ConvNet48,
@@ -35,6 +36,7 @@ network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32,
                            "ConvNet48_333": predictor_nets.ConvNet48_333,
                            "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout,
                            "ConvNet48_Dropout2": predictor_nets.ConvNet48_Dropout2,
+                           "ConvNet48_Dropout3": predictor_nets.ConvNet48_Dropout3,
                            "ConvNet64": predictor_nets.ConvNet64}[x]
 
 # Get command-line arguments
@@ -75,7 +77,6 @@ IMAGE_SIZE = (40,40)
 CHANNELS = 1
 INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
 num_classes = 10
-
 
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")

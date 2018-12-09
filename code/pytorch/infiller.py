@@ -26,7 +26,8 @@ import key_pixels
 
 from plot_helpers import imshowax
 # Identify the model to use
-STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+#STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+STORED_MODEL = os.path.join("results", "basis_runs", "Ctrain_predictor_1209_182340.pkl")
 FEATURE_MAPS = 48
 
 DATA_DIR = os.path.join("..", "..", "data")
@@ -59,7 +60,7 @@ with open(os.path.join(DATA_DIR, "test_parent_data.pkl"), 'rb') as f:
 print("Done Reading test data.")
 
 # Instantiate a model to use to predict
-net = predictor_nets.ConvNet48(num_classes, PREDICT_CHANNELS, IMAGE_SIZE).to(device=run_device)
+net = predictor_nets.ConvNet48_Dropout3(num_classes, PREDICT_CHANNELS, IMAGE_SIZE).to(device=run_device)
 transform = net.get_transformer()
 
 print(net)

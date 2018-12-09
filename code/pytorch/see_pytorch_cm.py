@@ -33,7 +33,8 @@ from sklearn.metrics import classification_report
 
 # Identify the model to evaluate
 
-STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+#STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+STORED_MODEL = os.path.join("results", "basis_runs", "Ctrain_predictor_1209_182340.pkl")
 DATA_DIR = os.path.join("..", "..", "data")
 
 IMAGE_SIZE = (40,40)
@@ -62,7 +63,7 @@ with open(os.path.join(DATA_DIR, "test_digit_data.pkl"), 'rb') as f:
 print("Done Reading pickles.")
 
 # Instantiate a model
-net = predictor_nets.ConvNet48(num_classes, CHANNELS, IMAGE_SIZE).to(device=run_device)
+net = predictor_nets.ConvNet48_Dropout3(num_classes, CHANNELS, IMAGE_SIZE).to(device=run_device)
 print(net)
 total_net_parms = net.get_total_parms()
 print ("Total trainable parameters:", total_net_parms)
@@ -70,6 +71,7 @@ print ("Total trainable parameters:", total_net_parms)
 # Load weights
 net.load_state_dict(torch.load(STORED_MODEL, map_location=run_device))
 print("Loading model from: ", STORED_MODEL)
+net.eval()
 
 # Turn test data into something the model can use
 test_set = SvhnDigitsDataset(test_data, transform=net.get_transformer())
@@ -104,8 +106,8 @@ def show_evaluation_metrics(net, run_device, test_loader):
         all_labels += [int(x) for x in labels]
         all_predicted += [int(x) for x in predicted]
         
-        if i>3:
-            break
+        #if i>3:
+        #    break
          
     print("Done predicting test data.")
     # Draw the confusion matrix
@@ -230,6 +232,6 @@ def show_pred_loop():
 if __name__ == "__main__":
 
     # Confusion Matrix
-    #c_matrix = show_evaluation_metrics(net, run_device, test_loader)
+    c_matrix = show_evaluation_metrics(net, run_device, test_loader)
 
     show_pred_loop()

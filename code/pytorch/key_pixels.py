@@ -162,20 +162,28 @@ class KeyPixelFinder():
         # Get std of each pixel across the feature maps
         fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0) 
         
-        # Figure out if this is mostly low or mostly high values
-        if fstd.median() < fstd.mean():
-            # Mostly low -- get a low threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 3)) & (fstd < np.percentile(fstd, 16))
-            print("Going dark")
-        else:
-            # Mostly high; get a high threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
-            print("Going light")
+#        # Figure out if this is mostly low or mostly high values
+#        if fstd.median() < fstd.mean():
+#            # Mostly low -- get a low threshold
+#            quiet_pixels = (fstd > np.percentile(fstd, 3)) & (fstd < np.percentile(fstd, 16))
+#            print("Going dark")
+#        else:
+#            # Mostly high; get a high threshold
+#            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
+#            print("Going light")
+        
+        
+        # Get some threshold values
+        bcount, bin_edges = np.histogram(fstd.flatten().cpu().numpy(), bins=35)
+        
+        # Find the biggest bin
+        sidx = bcount.argmax(axis=0)
+        quiet_pixels = (fstd > bin_edges[sidx]) & (fstd < bin_edges[sidx+1])
         
         quiet_image = to_PIL(quiet_pixels.view(self.net.channels, self.net.image_size[0], 
                                                self.net.image_size[1])).resize((original_PIL_image.width, original_PIL_image.height)) 
         
-         # Get the image pixels in a tensor where the last dimension is RGB (instead)
+        # Get the image pixels in a tensor where the last dimension is RGB (instead)
         # of the first dimension being the channel
         color_tensor = to_color_tensor(original_PIL_image).to(device=self.device).permute(1,2,0)
 

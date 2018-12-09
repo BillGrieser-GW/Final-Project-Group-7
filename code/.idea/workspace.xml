@@ -2,8 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3c028487-b281-42ed-a196-f243b5146a56" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/Q11_see_response.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/bill_go1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/bill_net1.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/infiller.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/infiller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/key_pixels.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/key_pixels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/predictor_nets.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/predictor_nets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pytorch/see_pytorch_cm.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/see_pytorch_cm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytorch/train_predictor.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/train_predictor.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -12,48 +19,50 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/code$see_pytorch_cm.coverage" NAME="see_pytorch_cm Coverage Results" MODIFIED="1544371867089" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
+    <SUITE FILE_PATH="coverage/code$see_pytorch_cm.coverage" NAME="see_pytorch_cm Coverage Results" MODIFIED="1544385004359" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
     <SUITE FILE_PATH="coverage/code$bill_net1.coverage" NAME="bill_net1 Coverage Results" MODIFIED="1544235295467" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
     <SUITE FILE_PATH="coverage/code$infiller.coverage" NAME="infiller Coverage Results" MODIFIED="1544374279903" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
-    <SUITE FILE_PATH="coverage/code$train_predictor.coverage" NAME="train_predictor Coverage Results" MODIFIED="1544366042116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
+    <SUITE FILE_PATH="coverage/code$train_predictor.coverage" NAME="train_predictor Coverage Results" MODIFIED="1544392355167" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/pytorch" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="530031441">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
+          <entry key="project.closed" value="1" />
           <entry key="project.open.time.2" value="1" />
-          <entry key="project.opened" value="1" />
+          <entry key="project.open.time.24" value="1" />
+          <entry key="project.opened" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="17" />
+          <entry key="py" value="18" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="17" />
+          <entry key="Python" value="18" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="2657" />
+          <entry key="py" value="2724" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="2657" />
+          <entry key="Python" value="2724" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="false">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/train_predictor.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="21" column="21" selection-start-line="21" selection-end-line="21" selection-end-column="21" />
+            <state relative-caret-position="170">
+              <caret line="28" column="63" lean-forward="true" selection-start-line="28" selection-start-column="63" selection-end-line="28" selection-end-column="63" />
               <folding>
                 <element signature="e#201#210#0" expanded="true" />
               </folding>
@@ -64,17 +73,26 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/see_pytorch_cm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="221" column="40" selection-start-line="221" selection-start-column="40" selection-end-line="221" selection-end-column="40" />
+            <state relative-caret-position="833">
+              <caret line="88" column="4" lean-forward="true" selection-start-line="88" selection-start-column="4" selection-end-line="88" selection-end-column="4" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.PyCharm2018.2/system/remote_sources/1537667450/1405239563/torch/nn/modules/module.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="12087">
+              <caret line="718" selection-start-line="718" selection-end-line="718" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/infiller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1197">
-              <caret line="37" lean-forward="true" selection-start-line="37" selection-end-line="37" />
+            <state relative-caret-position="646">
+              <caret line="38" selection-start-line="38" selection-end-line="38" />
             </state>
           </provider>
         </entry>
@@ -87,7 +105,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/svhndatasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-34">
+            <state relative-caret-position="68">
               <caret line="4" selection-start-line="4" selection-end-line="4" />
             </state>
           </provider>
@@ -95,16 +113,14 @@
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/svhnpickletypes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-606" />
-          </provider>
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2664">
-              <caret line="306" column="35" selection-start-line="306" selection-start-column="35" selection-end-line="306" selection-end-column="35" />
+            <state relative-caret-position="5202">
+              <caret line="309" selection-start-line="309" selection-end-line="309" />
               <folding>
                 <element signature="e#88#100#0" expanded="true" />
               </folding>
@@ -115,7 +131,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="492">
+            <state relative-caret-position="1870">
               <caret line="113" column="25" selection-start-line="113" selection-start-column="25" selection-end-line="113" selection-end-column="25" />
             </state>
           </provider>
@@ -139,10 +155,10 @@
         <option value="$PROJECT_DIR$/pytorch/fillnet.py" />
         <option value="$PROJECT_DIR$/pytorch/bill_net1.py" />
         <option value="$PROJECT_DIR$/svhndatasets.py" />
-        <option value="$PROJECT_DIR$/pytorch/predictor_nets.py" />
-        <option value="$PROJECT_DIR$/pytorch/train_predictor.py" />
-        <option value="$PROJECT_DIR$/pytorch/see_pytorch_cm.py" />
         <option value="$PROJECT_DIR$/pytorch/infiller.py" />
+        <option value="$PROJECT_DIR$/pytorch/predictor_nets.py" />
+        <option value="$PROJECT_DIR$/pytorch/see_pytorch_cm.py" />
+        <option value="$PROJECT_DIR$/pytorch/train_predictor.py" />
       </list>
     </option>
   </component>
@@ -164,7 +180,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -177,10 +192,17 @@
               <item name="code" type="462c0819:PsiDirectoryNode" />
               <item name="pytorch" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="code" type="b2602c69:ProjectViewProjectNode" />
+              <item name="code" type="462c0819:PsiDirectoryNode" />
+              <item name="pytorch" type="462c0819:PsiDirectoryNode" />
+              <item name="results" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -215,7 +237,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.infiller">
+  <component name="RunManager" selected="Python.train_predictor">
     <configuration name="bill_net1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="code" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -298,7 +320,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pytorch/train_predictor.py" />
-      <option name="PARAMETERS" value="--net ConvNet64 --opt SGD --batch 32 --epochs 2 --id Z" />
+      <option name="PARAMETERS" value="--net ConvNet48_Dropout3 --opt Adam --batch 32 --epochs 2 --id Z" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -314,8 +336,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.see_pytorch_cm" />
         <item itemvalue="Python.train_predictor" />
+        <item itemvalue="Python.see_pytorch_cm" />
         <item itemvalue="Python.bill_net1" />
       </list>
     </recent_temporary>
@@ -336,29 +358,29 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24068768" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24426934" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Python Console" />
-      <window_info anchor="bottom" id="Terminal" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
-      <window_info anchor="bottom" id="File Transfer" weight="0.32884097" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3301887" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.36792454" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="Remote Host" />
-      <window_info anchor="right" auto_hide="true" x="566" y="142" width="718" height="828" id="SciView" show_stripe_button="false" type="FLOATING" weight="0.5243553" />
-      <window_info anchor="right" id="Database" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="File Transfer" order="9" weight="0.5916442" />
+      <window_info anchor="bottom" id="Database Changes" order="10" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Terminal" order="11" />
+      <window_info anchor="bottom" id="Event Log" order="12" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="13" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Remote Host" order="3" />
+      <window_info anchor="right" auto_hide="true" x="566" y="142" width="718" height="828" id="SciView" order="4" show_stripe_button="false" type="FLOATING" weight="0.5243553" />
+      <window_info anchor="right" id="Database" order="5" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -368,9 +390,7 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/pytorch/bill_nets.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/bill_nets.py" />
     <entry file="file://$PROJECT_DIR$/pytorch/bill_net1.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="164">
@@ -392,59 +412,64 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
+    <entry file="file://$USER_HOME$/.PyCharm2018.2/system/remote_sources/1537667450/1405239563/torch/nn/modules/module.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="492">
-          <caret line="113" column="25" selection-start-line="113" selection-start-column="25" selection-end-line="113" selection-end-column="25" />
+        <state relative-caret-position="12087">
+          <caret line="718" selection-start-line="718" selection-end-line="718" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/infiller.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2664">
-          <caret line="306" column="35" selection-start-line="306" selection-start-column="35" selection-end-line="306" selection-end-column="35" />
-          <folding>
-            <element signature="e#88#100#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/train_predictor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="21" column="21" selection-start-line="21" selection-end-line="21" selection-end-column="21" />
-          <folding>
-            <element signature="e#201#210#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/svhnpickletypes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-606" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/svhndatasets.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-34">
-          <caret line="4" selection-start-line="4" selection-end-line="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/see_pytorch_cm.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="221" column="40" selection-start-line="221" selection-start-column="40" selection-end-line="221" selection-end-column="40" />
+        <state relative-caret-position="646">
+          <caret line="38" selection-start-line="38" selection-end-line="38" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/read_pickle.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/infiller.py">
+    <entry file="file://$PROJECT_DIR$/svhndatasets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1197">
-          <caret line="37" lean-forward="true" selection-start-line="37" selection-end-line="37" />
+        <state relative-caret-position="68">
+          <caret line="4" selection-start-line="4" selection-end-line="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/svhnpickletypes.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5202">
+          <caret line="309" selection-start-line="309" selection-end-line="309" />
+          <folding>
+            <element signature="e#88#100#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1870">
+          <caret line="113" column="25" selection-start-line="113" selection-start-column="25" selection-end-line="113" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/see_pytorch_cm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="833">
+          <caret line="88" column="4" lean-forward="true" selection-start-line="88" selection-start-column="4" selection-end-line="88" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/train_predictor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="28" column="63" lean-forward="true" selection-start-line="28" selection-start-column="63" selection-end-line="28" selection-end-column="63" />
+          <folding>
+            <element signature="e#201#210#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
