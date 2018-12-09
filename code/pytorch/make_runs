@@ -1,0 +1,15 @@
+#!/bin/bash
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt SGD --net ConvNet32
+
+python3 train_predictor.py --batch 256 --epochs 100 --opt SGD --net ConvNet32
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt Adagrad --net ConvNet32
+
+python3 train_predictor.py --batch 256 --epochs 100 --opt Adagrad --net ConvNet32
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt Adagrad --net ConvNet32_753
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt Adagrad --net ConvNet48
+
+

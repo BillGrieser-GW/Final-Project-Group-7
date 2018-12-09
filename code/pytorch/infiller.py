@@ -34,12 +34,12 @@ IMAGE_SIZE = (40,40)
 PREDICT_CHANNELS = 1
 GRAD_PERCENTILE = 10
 FILL_CHANNELS = 3
-
+GRID_SPACING = 3
 
 CLASSES = [str(x) for x in range(10)]
 num_classes = len(CLASSES)
 
-FORCE_CPU = True
+FORCE_CPU = False
 if torch.cuda.is_available() and FORCE_CPU != True:
     print("Using cuda device for Torch")
     run_device = torch.device('cuda')
@@ -75,7 +75,7 @@ total_net_parms = net.get_total_parms()
 
 #%%
 while True:
-    parent_idx = input("Enter an index from 0 to {0} from the test data (q to quit): ".format(len(test_data)))
+    parent_idx = input("Enter an index from 0 to {0} from the test data (q to quit): ".format(len(test_data)-1))
     
     try:
         if parent_idx.lower() == 'q':
@@ -86,6 +86,10 @@ while True:
         print("Bad input -- assuimg 0")
         parent_idx = 0
 
+    if parent_idx >= len(test_data) or parent_idx < 0:
+        print("Bad input -- assuimg 0")
+        parent_idx = 0
+        
     # Process this parent image
     parent_image = test_data[parent_idx].parent_image
     filled_parent = parent_image.copy()
@@ -113,7 +117,8 @@ while True:
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_near_average(digit_image, pclass, imagev)
         #training_pixels, quiet_image, candidates = kpf.get_using_grad_value(digit_image, pclass, imagev)
         #training_pixels, quiet_image, candidates = kpf.get_using_grid(digit_image, pclass, imagev)
-        training_pixels, quiet_image, candidates = kpf.get_using_fmaps_std(digit_image, pclass, imagev)
+        training_pixels, quiet_image, candidates = kpf.get_using_fmaps_std(digit_image, 
+                                          pclass, imagev, grid_spacing=GRID_SPACING)
         
         # We will visualize the pixels being used to find the background
         training_pixel_image = quiet_image.copy()
@@ -127,9 +132,9 @@ while True:
 
         trainer = FillNetTrainer(fnet)
         
-        trainer.train(training_pixels, training_pixel_image)
+        trainer.train(training_pixels, training_pixel_image, )
         
-        # Synthisize more training data from the initial batch in order to 
+        # Synthesize more training data from the initial batch in order to 
         # get a smoother image
         idx = 0
         while idx < 1000:
@@ -144,7 +149,7 @@ while True:
         # Display
         # =============================================================================
         
-        f, all_ax = plt.subplots(1, 4, figsize=(10, 7))
+        f, all_ax = plt.subplots(1, 3, figsize=(10, 7))
         f.suptitle("Actual: {0} Predicted: {1} Parent: {2}".
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         

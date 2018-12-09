@@ -26,13 +26,16 @@ import predictor_nets
 # =============================================================================
 optimizer_args = lambda x: {"SGD": torch.optim.SGD, 
                             "ASGD": torch.optim.ASGD, \
+                            "Adadelta": torch.optim.Adadelta, \
                             "Adagrad": torch.optim.Adagrad}[x]
 
 network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32, 
                            "ConvNet48": predictor_nets.ConvNet48,
                            "ConvNet32_753": predictor_nets.ConvNet32_753,
                            "ConvNet48_333": predictor_nets.ConvNet48_333,
-                           "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout}[x]
+                           "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout,
+                           "ConvNet48_Dropout2": predictor_nets.ConvNet48_Dropout2,
+                           "ConvNet64": predictor_nets.ConvNet64}[x]
 
 # Get command-line arguments
 parser = argparse.ArgumentParser(description='Train SVHN predictor.')
@@ -41,13 +44,16 @@ parser.add_argument('--batch', type=int, default=32,
 parser.add_argument('--epochs', type=int, default=2,
                    help='Epochs')
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
-                   help='Optimizer (SGD, Adagrad, ASGD)')
+                   help='Optimizer (SGD, Adagrad, Adadelta, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet32', 
-                   help='Network architecure (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout)')
+                   help='Network architecture (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout, '
+                        'ConvNet48_Dropout2)')
 parser.add_argument('--lr', type=float, default=0.001,
                    help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
                    help='Force to CPU even if GPU present')
+parser.add_argument('--id', default='',
+                   help='Optional ID to prepend to results files.')
 args = parser.parse_args()
 
 batch_size = args.batch
@@ -56,6 +62,7 @@ optimizer = args.opt
 FORCE_CPU = args.cpu
 num_epochs = args.epochs
 learning_rate = args.lr
+run_id = args.id
 
 print("Run starting . . .")
 print("Using optimizer:", optimizer, "\nwith batch size:", batch_size, 
@@ -226,6 +233,9 @@ run_base='console'
 if sys.argv[0] != '':
     run_base = os.path.basename(sys.argv[0])
     run_base = os.path.join(os.path.splitext(run_base)[0])
+
+if run_id != '':
+    run_base = run_id + run_base
     
 run_base=os.path.join('results', run_base)
 

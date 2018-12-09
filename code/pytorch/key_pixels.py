@@ -143,7 +143,8 @@ class KeyPixelFinder():
         
         return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, lambda x: light_dark_filter(0.20, x) )
     
-    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None, side_stride=5):
+    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None, 
+                            grid_spacing=3, side_stride=5):
         
         if original_tensor is None:
             original_tensor = self.net.get_transformer()(original_PIL_image)
@@ -180,8 +181,8 @@ class KeyPixelFinder():
 
         # Selected pixels are potential traning data for the RBF net
         candidates = []
-        for x in range(0, quiet_image.width, 3):
-            for y in range(0, quiet_image.height, 3):
+        for x in range(0, quiet_image.width, grid_spacing):
+            for y in range(0, quiet_image.height, grid_spacing):
                 if quiet_image.getpixel((x,y)) == 1:
                     candidates.append((x, y, color_tensor[y, x]))
                     

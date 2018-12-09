@@ -17,7 +17,8 @@ import numpy.ma as ma
 
 import torch.nn as nn
 from torch.autograd import Variable
-from bill_nets import ConvNet
+import predictor_nets
+from plot_helpers import imshowax
 
 from svhnpickletypes import SvhnDigit
 from svhndatasets import SvhnDigitsDataset
@@ -31,16 +32,15 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
 
 # Identify the model to evaluate
-STORED_MODEL = os.path.join("results", "bill_net1_1118_195850.pkl")
 
-IMAGE_SIZE = (46,46)
+STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
+DATA_DIR = os.path.join("..", "..", "data")
+
+IMAGE_SIZE = (40,40)
 CHANNELS = 1
-INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1]) 
-hidden_size = 500
+INPUT_SIZE = (CHANNELS * IMAGE_SIZE[0] * IMAGE_SIZE[1])
 num_classes = 10
-num_epochs = 1
 batch_size = 1000
-learning_rate = .001
 
 FORCE_CPU = True
 
@@ -52,34 +52,17 @@ else:
     run_device = torch.device('cpu')
     
 # =============================================================================
-# Load training and test data
+# Load test data
 # =============================================================================
-
-# Define a transformation that converts each image to a tensor and normalizes
-# each channel
-transform = transforms.Compose([transforms.Grayscale(),
-                                transforms.Resize(IMAGE_SIZE),
-                                transforms.ToTensor(), 
-                                transforms.Normalize((0.5,) * CHANNELS, (0.5,) * CHANNELS)])
-
-DATA_DIR = os.path.join("..", "..", "data")
-
 # Open the train pickle"
 print("Reading pickles")
-#with open(os.path.join(DATA_DIR, "train_digit_data.pkl"), 'rb') as f:
-#    train_data = pickle.load(f)
+
 with open(os.path.join(DATA_DIR, "test_digit_data.pkl"), 'rb') as f:
     test_data = pickle.load(f)
 print("Done Reading pickles.")
 
-#train_set = SvhnDigitsDataset(train_data, transform=transform)
-#train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-
-test_set = SvhnDigitsDataset(test_data, transform=transform)
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
-
 # Instantiate a model
-net = ConvNet(num_classes, CHANNELS, IMAGE_SIZE).to(device=run_device)
+net = predictor_nets.ConvNet48(num_classes, CHANNELS, IMAGE_SIZE).to(device=run_device)
 print(net)
 total_net_parms = net.get_total_parms()
 print ("Total trainable parameters:", total_net_parms)
@@ -88,10 +71,10 @@ print ("Total trainable parameters:", total_net_parms)
 net.load_state_dict(torch.load(STORED_MODEL, map_location=run_device))
 print("Loading model from: ", STORED_MODEL)
 
-total_net_parms = net.get_total_parms()
-print ("Total trainable parameters:", total_net_parms)
-   
-#%%
+# Turn test data into something the model can use
+test_set = SvhnDigitsDataset(test_data, transform=net.get_transformer())
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+
 # =============================================================================
 # Display results summary
 # =============================================================================
@@ -117,14 +100,14 @@ def show_evaluation_metrics(net, run_device, test_loader):
         for idx in range(len(predicted)):
             c_matrix[labels[idx], predicted[idx]] += 1
             
-        # Accumlate for error metrics
+        # Accumulate for error metrics
         all_labels += [int(x) for x in labels]
         all_predicted += [int(x) for x in predicted]
         
-        if i>4:
+        if i>3:
             break
          
-    print("Done predicting reading test data.")
+    print("Done predicting test data.")
     # Draw the confusion matrix
 
     # This uses Seaborn, which gives a nice plot; however, our cloud instances
@@ -175,32 +158,13 @@ def show_evaluation_metrics(net, run_device, test_loader):
     # IN CASE OF EMERGENCY: Uncomment to see a text-only CM
     #print("\nConfusion matrix (non-graphically)\n")
     #print(c_matrix)
-    
     return c_matrix
 
-   
-#%%
-def imshowax(ax, img):
-    #img = img / 2 + 0.5
-    if type(img) == torch.Tensor:
-        npimg = img.numpy()
-    else:
-        npimg = img
-        
-    #ax.imshow(np.transpose(npimg, (1, 2, 0)))
-    ax.imshow(npimg, cmap='Greys_r')
-    ax.tick_params(axis='both', which = 'both', bottom=False, left=False, tick1On=False, tick2On=False,
-                   labelbottom=False, labelleft=False)
-    
-    
 def show_pred_loop():
-    pass
-#%%
+
     normalizer = nn.Softmax(dim=1)
     classes = [str(x) for x in range(10)]
-    criterion = nn.CrossEntropyLoss() 
-    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
-    
+
     while True:
         image_idx = input("Enter an index from 0 to {0} from the test data (q to quit): ".format(len(test_set)))
         
@@ -217,9 +181,8 @@ def show_pred_loop():
         if image_idx >= 0 and image_idx < len(test_set):
             
             # Get the image & label
-            image, label = test_set[image_idx]    
-            
-            imagev = Variable(image).to(device=run_device).view(1,1,46,46)
+            image, label = test_set[image_idx]
+            imagev = Variable(image).to(device=run_device).view(1,1,IMAGE_SIZE[0],IMAGE_SIZE[1])
             imagev.requires_grad_(True)
             
             outputs = net(imagev)
@@ -231,112 +194,42 @@ def show_pred_loop():
             
             # Get grads of input for predicted output
             last_grad = [0] * len(classes)
-            #last_grad[pclass] = 1
-            other_grads = []
-            pred_grads = []
-            wavg = np.zeros((net.image_size[0],net.image_size[1]))
-            weightsum = 0
-            
-            for idx in range(len(classes)):
-                last_grad = [0] * len(classes)
-                last_grad[idx] = 1
-                outputs = net(imagev)
-                outputs.backward(torch.Tensor(last_grad).view(1,-1), retain_graph=True)
-                thesegrads = imagev.grad[0,0].numpy().copy()
-                # normalize
-                thesegrads = (thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min())
-                
-                if idx == pclass:
-                    pred_grads = thesegrads
-                else:
-                    other_grads.append(thesegrads)
-                    wavg += (1-float(softmaxed[idx])) * thesegrads
-                    weightsum += 1-float(softmaxed[idx])
-                    
-                #all_grads.append((thesegrads - thesegrads.min()) / (thesegrads.max() - thesegrads.min()) )
-                
-                imagev.grad.data.zero_()
-            
-            wavg = wavg / (weightsum if weightsum != 0 else 1)
-            
-            #loss = criterion(outputs, predicted)
-            #loss.backward()
-           
-            #print("Grads", imagev.grad)
-            
-#            tally= torch.zeros(net.image_size[0],net.image_size[1], device=run_device)
-#            tally.requires_grad_(False)
-#           
-#            # Determine the contribution of each pixel
-#            for row in range(net.image_size[0]):
-#                print ("Tally row: {0}".format(row))
-#                for col in range(net.image_size[1]):
-#                    trial_in= torch.ones(net.image_size[0],net.image_size[1], device=run_device)
-#                    trial_in.requires_grad_(False)
-#                    trial_in = trial_in * 0.5
-#                    trial_in[row, col] = imagev[0, 0, row, col]
-#                    
-#                    # Run the network
-#                    trial_out = net(trial_in.view(1,1,net.image_size[0],net.image_size[1]))
-#                    tally[row, col] = trial_out[0, predicted]
-     
-            f, ax = plt.subplots(1, 6, figsize=(10,3.5))
-            f.suptitle("Actual: {0} Predicted: {1}".
-                   format(classes[label], classes[pclass]))
-            
-            ax[0].imshow(test_data[image_idx].digit_image)
+            last_grad[pclass] = 1
+            outputs.backward(torch.Tensor(last_grad).view(1, -1))
+            pred_grads = imagev.grad[0, 0].numpy().copy()
+
+            f, ax = plt.subplots(1, 4, figsize=(10,8))
+            f.suptitle("Image: {2} Parent: {3}\nActual: {0} Predicted: {1}".
+                   format(classes[label], classes[pclass], image_idx, test_data[image_idx].data.file_name))
+
+            imshowax(ax[0], test_data[image_idx].digit_image)
             ax[0].set_xlabel("Original Image for digit")
             
             imshowax(ax[1], imagev.detach().view(net.image_size[0], net.image_size[1]))
-            
-            ax[1].set_xlabel("Image {0}".format(image_idx))
+            ax[1].set_xlabel("Transformed Image")
+
             y_pos = np.arange(len(classes))
             ax[2].set_yticks(y_pos)
             ax[2].set_yticklabels(classes, fontsize=8)
-            ax[2].set_xlabel("Confidence of class prediction")
-            
-            
+            ax[2].set_xlim([0, 1])
+            ax[2].set_xlabel("Confidence of\nclass prediction")
+
             ax[2].barh(y_pos, softmaxed, align='center',
                     color='blue')
             ax[2].invert_yaxis()
-            
-            #imshowax(ax[3], tally.detach())
-            #ax[3].set_xlabel("Contribution of each pixel")
-            #x = imagev.grad[0,0]
-            #predg = all_grads[pclass]
-            
-            # Remove pred
-            #del all_grads[pclass]
-            
-            #x = torch.Tensor(predg - np.asarray(all_grads).mean(axis=0))
-            x1 = torch.Tensor(pred_grads) #- np.asarray(other_grads).mean(axis=0))
-            #x2 = torch.Tensor(pred_grads - wavg)
-            x2 = x1 < 0.35
-            x3 = (x2).float() * imagev.view(net.image_size[0], net.image_size[1])
-            
+
+            x1 = torch.Tensor(pred_grads)
             imshowax(ax[3], x1.detach())
-            ax[3].set_xlabel("x1")
-            
-            imshowax(ax[4], x2.detach())
-            ax[4].set_xlabel("x2")
-            
-            imshowax(ax[5], x3.detach())
-            ax[5].set_xlabel("x3")
-            
+            ax[3].set_xlabel("Gradients of input\nwrt Output by pixel")
+
             plt.show()
 
-
-            # make a collection of points selected by the gradients
-            
-            
-#%%  
-show_pred_loop()
 # =============================================================================
 # MAIN -- show the matrix for the loaded model
 # =============================================================================
 if __name__ == "__main__":
-    
-    pass
 
     # Confusion Matrix
-    # c_matrix = show_evaluation_metrics(net, run_device, test_loader)
+    #c_matrix = show_evaluation_metrics(net, run_device, test_loader)
+
+    show_pred_loop()
