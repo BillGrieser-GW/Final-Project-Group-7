@@ -138,7 +138,8 @@ while True:
         # Synthesize more training data from the initial batch in order to 
         # get a smoother image
         idx = 0
-        while idx < 1000:
+        while idx < 30:
+            idx += 1
             new_pixels = trainer.augment_and_retrain()
             if len(new_pixels) == 0:
                 break

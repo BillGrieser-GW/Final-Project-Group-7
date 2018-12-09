@@ -106,6 +106,6 @@ venv.bak/
 *.pkl
 /data/*
 /code/results
-/code/results
 /code/pytorch/results
+!/code/pytorch/pretrained_model/*
 ~*
