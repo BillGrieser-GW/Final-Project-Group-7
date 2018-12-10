@@ -143,7 +143,8 @@ class KeyPixelFinder():
         
         return self._quiet_pixels_to_key_pixels(quiet_pixels, original_PIL_image, lambda x: light_dark_filter(0.20, x) )
     
-    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None, side_stride=5):
+    def get_using_fmaps_std(self, original_PIL_image, predicted_class=None, original_tensor=None, 
+                            grid_spacing=3, side_stride=5):
         
         if original_tensor is None:
             original_tensor = self.net.get_transformer()(original_PIL_image)
@@ -161,27 +162,35 @@ class KeyPixelFinder():
         # Get std of each pixel across the feature maps
         fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0) 
         
-        # Figure out if this is mostly low or mostly high values
-        if fstd.median() < fstd.mean():
-            # Mostly low -- get a low threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 3)) & (fstd < np.percentile(fstd, 16))
-            print("Going dark")
-        else:
-            # Mostly high; get a high threshold
-            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
-            print("Going light")
+#        # Figure out if this is mostly low or mostly high values
+#        if fstd.median() < fstd.mean():
+#            # Mostly low -- get a low threshold
+#            quiet_pixels = (fstd > np.percentile(fstd, 3)) & (fstd < np.percentile(fstd, 16))
+#            print("Going dark")
+#        else:
+#            # Mostly high; get a high threshold
+#            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
+#            print("Going light")
+        
+        
+        # Get some threshold values
+        bcount, bin_edges = np.histogram(fstd.flatten().cpu().numpy(), bins=35)
+        
+        # Find the biggest bin
+        sidx = bcount.argmax(axis=0)
+        quiet_pixels = (fstd > bin_edges[sidx]) & (fstd < bin_edges[sidx+1])
         
         quiet_image = to_PIL(quiet_pixels.view(self.net.channels, self.net.image_size[0], 
                                                self.net.image_size[1])).resize((original_PIL_image.width, original_PIL_image.height)) 
         
-         # Get the image pixels in a tensor where the last dimension is RGB (instead)
+        # Get the image pixels in a tensor where the last dimension is RGB (instead)
         # of the first dimension being the channel
         color_tensor = to_color_tensor(original_PIL_image).to(device=self.device).permute(1,2,0)
 
         # Selected pixels are potential traning data for the RBF net
         candidates = []
-        for x in range(0, quiet_image.width, 3):
-            for y in range(0, quiet_image.height, 3):
+        for x in range(0, quiet_image.width, grid_spacing):
+            for y in range(0, quiet_image.height, grid_spacing):
                 if quiet_image.getpixel((x,y)) == 1:
                     candidates.append((x, y, color_tensor[y, x]))
                     

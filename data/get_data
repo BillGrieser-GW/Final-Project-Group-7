@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Download the files from the owner
+if [ ! -f train.tar.gz ]; then
+    echo "Downloading training gz"
+    wget http://ufldl.stanford.edu/housenumbers/train.tar.gz
+else
+    echo "Using existing train.tar.gz"
+fi
+
+if [ ! -f test.tar.gz ]; then
+    echo "Downloading test gz"
+    wget http://ufldl.stanford.edu/housenumbers/test.tar.gz
+else
+    echo "Using existing test.tar.gz"
+fi
+
+echo "Unzipping . . ."
+tar xzf train.tar.gz
+tar xzf test.tar.gz
+echo "Now go into the code directory and run python3 make_pickles.py"
+echo "Done."
+
+
+
