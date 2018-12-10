@@ -21,4 +21,6 @@ and run:
     python3 make_pickles.py
   
 to create the pickle files used by the code.
+
+For Image Classification on TensorFlow and Caffee Frameworks **Format 2** of the data is used in the Project.
     
