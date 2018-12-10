@@ -1,0 +1,5 @@
+#!/bin/bash
+
+
+python3 train_predictor.py --batch 32 --epochs 100 --opt Adam --net ConvNet48_Dropout3 --lr 0.005 --id D
+
