@@ -18,6 +18,7 @@ fi
 echo "Unzipping . . ."
 tar xzf train.tar.gz
 tar xzf test.tar.gz
+echo "Now go into the code directory and run python3 make_pickles.py"
 echo "Done."
 
 
