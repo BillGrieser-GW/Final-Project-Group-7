@@ -35,7 +35,7 @@ def imshow(ax, im_frame, metadata=[], title=''):
     if title != '':
         ax.set_title(title)
          
-tests = [8775, 29, 18, 12003, 12, 40, 12002, 0, 8775] # 22660 for train
+tests = [8775, 29, 18, 12003, 12] # 22660 for train
 #tests = [49, 44, 0, 1, 2, 3, 18, 19, 40]
 
 for t in tests:
@@ -51,7 +51,8 @@ for t in tests:
         imshow(ax[d.seq_in_file], parent.crop(d.get_crop_box()), title="Label = {0}".format(d.label)) 
         
     plt.show()
- 
+
+#%%
 # =============================================================================
 # Digit files -- one entry per digit, with the image already cropped
 # =============================================================================
