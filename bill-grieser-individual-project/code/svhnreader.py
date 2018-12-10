@@ -9,7 +9,6 @@ from svhnpickletypes import SvhnDigit
 #
 # Based on a stack overflow answer:
 # https://stackoverflow.com/questions/41176258/h5py-access-data-in-datasets-in-svhn
-# (for get_bbox() and get_name())
 #
 class SvhnReader():
     
