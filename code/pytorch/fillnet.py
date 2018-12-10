@@ -117,9 +117,7 @@ class FillNet(nn.Module):
         pixels = self.forward(torch.Tensor(self.coords).type(torch.int).to(device=self.device)).cpu().detach().numpy()
                   
         for idx, xy in enumerate(self.coords):
-            #grayp = int(255 * pixels[idx])
             try:
-
                 pmap[xy[0], xy[1]] = tuple((255 * pixels[idx]).astype(int))
             except:
                 pmap[xy[0], xy[1]] = (0,0,0)
