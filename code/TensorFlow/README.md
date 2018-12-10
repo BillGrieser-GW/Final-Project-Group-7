@@ -29,6 +29,6 @@ Using CNN architecture.
 
    - **`data_preprocess.py`**: preprocess the data
    
-   - **`TensorFlow_model_1`**: run the model and report results
+   - **`TensorFlow_model_1.py`**: run the model and report results
     
 ```
