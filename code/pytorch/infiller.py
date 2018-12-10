@@ -27,7 +27,7 @@ import key_pixels
 from plot_helpers import imshowax
 # Identify the model to use
 #STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
-STORED_MODEL = os.path.join("results", "basis_runs", "Ctrain_predictor_1209_182340.pkl")
+STORED_MODEL = os.path.join("pretrained_model", "Ctrain_predictor_1209_182340.pkl")
 FEATURE_MAPS = 48
 
 DATA_DIR = os.path.join("..", "..", "data")

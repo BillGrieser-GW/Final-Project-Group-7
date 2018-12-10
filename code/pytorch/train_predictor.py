@@ -46,11 +46,11 @@ parser.add_argument('--batch', type=int, default=32,
 parser.add_argument('--epochs', type=int, default=2,
                    help='Epochs')
 parser.add_argument('--opt', type=optimizer_args, default='SGD', 
-                   help='Optimizer (SGD, Adagrad, Adadelta, ASGD)')
-parser.add_argument('--net', type=network_args, default='ConvNet32', 
+                   help='Optimizer (SGD, Adagrad, Adadelta, Adam, ASGD)')
+parser.add_argument('--net', type=network_args, default='ConvNet48_Dropout3',
                    help='Network architecture (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout, '
-                        'ConvNet48_Dropout2)')
-parser.add_argument('--lr', type=float, default=0.001,
+                        'ConvNet48_Dropout2, ConvNet48_Dropout3)')
+parser.add_argument('--lr', type=float, default=0.005,
                    help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
                    help='Force to CPU even if GPU present')

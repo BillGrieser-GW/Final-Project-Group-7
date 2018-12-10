@@ -11,9 +11,7 @@ sys.path.insert(0,"..")
 
 import os
 import torch
-import torchvision.transforms as transforms
 import numpy as np
-import numpy.ma as ma
 
 import torch.nn as nn
 from torch.autograd import Variable
@@ -34,7 +32,7 @@ from sklearn.metrics import classification_report
 # Identify the model to evaluate
 
 #STORED_MODEL = os.path.join("results", "basis_runs", "train_predictor_1208_230417.pkl")
-STORED_MODEL = os.path.join("results", "basis_runs", "Ctrain_predictor_1209_182340.pkl")
+STORED_MODEL = os.path.join("pretrained_model", "Ctrain_predictor_1209_182340.pkl")
 DATA_DIR = os.path.join("..", "..", "data")
 
 IMAGE_SIZE = (40,40)
