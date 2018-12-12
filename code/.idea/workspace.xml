@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3c028487-b281-42ed-a196-f243b5146a56" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/pytorch/fillnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/fillnet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytorch/results/basis_runs/train_predictor_1208_230417_results.txt" beforeDir="false" afterPath="$PROJECT_DIR$/pytorch/results/basis_runs/train_predictor_1208_230417_results.txt" afterDir="false" />
-    </list>
+    <list default="true" id="3c028487-b281-42ed-a196-f243b5146a56" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +64,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="318">
@@ -75,33 +72,6 @@
               <folding>
                 <element signature="e#88#100#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pytorch/results/basis_runs/Ctrain_predictor_1209_182340_results.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="340">
-              <caret line="38" column="19" lean-forward="true" selection-end-line="55" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pytorch/results/basis_runs/train_predictor_1208_230417_results.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="340">
-              <caret line="26" column="14" selection-end-line="53" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="290">
-              <caret line="93" column="12" lean-forward="true" selection-start-line="82" selection-end-line="105" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -138,7 +108,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-2" />
     <option name="y" value="13" />
     <option name="width" value="1456" />
@@ -428,20 +398,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="318">
-          <caret line="293" column="8" selection-start-line="278" selection-end-line="310" selection-end-column="18" />
-          <folding>
-            <element signature="e#88#100#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/results/basis_runs/Ctrain_predictor_1209_182340_results.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="38" column="19" lean-forward="true" selection-end-line="55" />
+        <state relative-caret-position="-84">
+          <caret line="95" column="25" selection-start-line="82" selection-end-line="105" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -452,10 +412,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pytorch/fillnet.py">
+    <entry file="file://$PROJECT_DIR$/pytorch/results/basis_runs/Ctrain_predictor_1209_182340_results.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="93" column="12" lean-forward="true" selection-start-line="82" selection-end-line="105" selection-end-column="18" />
+        <state relative-caret-position="273">
+          <caret line="38" column="19" lean-forward="true" selection-end-line="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pytorch/predictor_nets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="318">
+          <caret line="293" column="8" selection-start-line="278" selection-end-line="310" selection-end-column="18" />
+          <folding>
+            <element signature="e#88#100#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
