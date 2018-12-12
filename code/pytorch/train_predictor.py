@@ -37,6 +37,7 @@ network_args = lambda x: {"ConvNet32": predictor_nets.ConvNet32,
                            "ConvNet48_Dropout": predictor_nets.ConvNet48_Dropout,
                            "ConvNet48_Dropout2": predictor_nets.ConvNet48_Dropout2,
                            "ConvNet48_Dropout3": predictor_nets.ConvNet48_Dropout3,
+                           "ConvNet48_Dropout5": predictor_nets.ConvNet48_Dropout5,
                            "ConvNet64": predictor_nets.ConvNet64}[x]
 
 # Get command-line arguments
@@ -49,7 +50,7 @@ parser.add_argument('--opt', type=optimizer_args, default='SGD',
                    help='Optimizer (SGD, Adagrad, Adadelta, Adam, ASGD)')
 parser.add_argument('--net', type=network_args, default='ConvNet48_Dropout3',
                    help='Network architecture (ConvNet32, ConvNet48, Convnet32_753, ConvNet48_333, ConvNet48_Dropout, '
-                        'ConvNet48_Dropout2, ConvNet48_Dropout3)')
+                        'ConvNet48_Dropout2, ConvNet48_Dropout3, ConvNet48_Dropout5)')
 parser.add_argument('--lr', type=float, default=0.005,
                    help='Learning rate')
 parser.add_argument('--cpu', action='store_true', 
