@@ -1,7 +1,0 @@
-#!/bin/bash
-
-python3 train_predictor.py --batch 32 --epochs 100 --opt SGD --net ConvNet32 --lr 0.01
-
-python3 train_predictor.py --batch 32 --epochs 100 --opt Adagrad --net ConvNet48 --lr 0.01
-
-

@@ -1,2 +1,0 @@
-These are copies of the code I wrote from the Group repo. The code will not run out of this directory since it expects the data to be
-in a particular place relative to the execution. This is just here for documentation of what I did.
