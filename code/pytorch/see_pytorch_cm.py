@@ -196,7 +196,7 @@ def show_pred_loop():
             last_grad = [0] * len(classes)
             last_grad[pclass] = 1
             outputs.backward(torch.Tensor(last_grad).view(1, -1))
-            pred_grads = imagev.grad[0, 0].numpy().copy()
+            pred_grads = imagev.grad[0, 0].detach().numpy().copy()
 
             f, ax = plt.subplots(1, 4, figsize=(10,8))
             f.suptitle("Image: {2} Parent: {3}\nActual: {0} Predicted: {1}".
@@ -214,7 +214,7 @@ def show_pred_loop():
             ax[2].set_xlim([0, 1])
             ax[2].set_xlabel("Confidence of\nclass prediction")
 
-            ax[2].barh(y_pos, softmaxed, align='center',
+            ax[2].barh(y_pos, softmaxed.detach(), align='center',
                     color='blue')
             ax[2].invert_yaxis()
 

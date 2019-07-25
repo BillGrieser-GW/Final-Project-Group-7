@@ -159,9 +159,8 @@ class KeyPixelFinder():
         # =============================================================================
         fmaps = self.net.layer1[0].forward(original_tensor).cpu().detach()
         
-        # Get std of each pixel across the feature maps
+        # Get mean - std of each pixel across the feature maps
         fstd = fmaps[0].mean(dim=0) - fmaps[0].std(dim=0) 
-        
 #        # Figure out if this is mostly low or mostly high values
 #        if fstd.median() < fstd.mean():
 #            # Mostly low -- get a low threshold
@@ -172,11 +171,10 @@ class KeyPixelFinder():
 #            quiet_pixels = (fstd > np.percentile(fstd, 84)) & (fstd < np.percentile(fstd, 97))
 #            print("Going light")
         
-        
-        # Get some threshold values
+        # Bucketize the range of values for fstd
         bcount, bin_edges = np.histogram(fstd.flatten().cpu().numpy(), bins=35)
         
-        # Find the biggest bin
+        # Find the biggest bin and get the pixles in that bin
         sidx = bcount.argmax(axis=0)
         quiet_pixels = (fstd > bin_edges[sidx]) & (fstd < bin_edges[sidx+1])
         

@@ -11,7 +11,6 @@ import sys
 sys.path.insert(0,"..")
 
 import os
-import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import torch
@@ -156,7 +155,10 @@ while True:
                    format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
         
         ax = all_ax
+        plt.tight_layout()
+         
         imshowax(ax[0], digit_image)
+        
         #ax[0].imshow(digit_image)
         ax[0].set_xlabel("Image for digit") 
         
@@ -175,11 +177,11 @@ while True:
         
         filled_parent.paste(filled_image, digit.get_crop_box())
         #print("SigmaSq:", fnet.sigmaSq)
+       
         
         f, all_ax = plt.subplots(int(FEATURE_MAPS/8), 8, figsize=(12, 6))
         f.suptitle("Feature maps for Actual: {0} Predicted: {1} Parent: {2}".
-                   format(CLASSES[digit_label], CLASSES[pclass], parent_idx))
-                   
+                   format(CLASSES[digit_label], CLASSES[pclass], parent_idx)) 
         fmaps = net.layer1[0].forward(imagev).detach()
         
         for rg in range(int(FEATURE_MAPS/8)):
@@ -198,6 +200,7 @@ while True:
         all_ax[2].set_xlabel("Feature mean - std")
         all_ax[3].hist((fmaps[0].mean(dim=0) - fmaps[0].std(dim=0)).flatten())
         all_ax[3].set_xlabel("Feature mean - std hist")
+        #plt.tight_layout()
         
         #imshowax(all_ax[3], fmaps[0].mean(dim=0).pow(fmaps[0].std(dim=0)))
         #all_ax[3].set_xlabel("Feature mean/std")
@@ -210,4 +213,5 @@ while True:
     ax[0].set_xlabel("Original")  
     imshowax(ax[1], filled_parent)
     ax[1].set_xlabel("Altered")  
+    plt.tight_layout()
     plt.show()

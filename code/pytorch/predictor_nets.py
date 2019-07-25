@@ -314,17 +314,17 @@ class ConvNet48_Dropout5(BaseNet):
     def __init__(self, num_classes, channels, image_size):
         super(ConvNet48_Dropout5, self).__init__(num_classes, channels, image_size)
         self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 48, kernel_size=5, padding=1),
+            nn.Conv2d(1, 48, kernel_size=5, padding=2),
             nn.BatchNorm2d(48),
             nn.ReLU(),
             nn.MaxPool2d(2))
         self.layer2 = nn.Sequential(
-            nn.Conv2d(48, 64, kernel_size=5, padding=1),
+            nn.Conv2d(48, 64, kernel_size=5, padding=2),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2))
         self.layer3 = nn.Sequential(
-            nn.Conv2d(64, 32, kernel_size=5, padding=1),
+            nn.Conv2d(64, 32, kernel_size=5, padding=2),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2))

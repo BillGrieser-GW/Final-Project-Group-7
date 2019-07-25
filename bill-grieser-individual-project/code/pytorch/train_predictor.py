@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import csv
+import time
 
 # Allow imports from parent dir
 sys.path.insert(0,"..")
